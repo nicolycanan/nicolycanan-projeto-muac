@@ -1,7 +1,5 @@
-# MUAC
-> Se você chegou até aqui de alguma forma, essa é só uma porta.
-
-### uma publicação pessoal sobre coisas que eu quero lembrar.
+# Muac
+> Se você chegou até aqui de alguma forma, essa é só uma porta. Uma publicação pessoal sobre coisas que eu quero lembrar.
 
 **Muac** é é quase um **acervo pessoal** criado para guardar histórias, referências, músicas, imagens, descobertas e pequenos fragmentos da vida.
 
