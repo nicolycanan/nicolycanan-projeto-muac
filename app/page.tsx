@@ -58,14 +58,24 @@ export default async function Home() {
               <p className={styles.teaserNote}>{playlist.note}</p>
             </Link>
 
-            <Link href="/gallery" className={`${styles.teaser} reveal`}>
-              <span className={styles.teaserLabel}>
-                <span className={styles.teaserDot} aria-hidden="true" />
-                Gallery
-              </span>
-              <span className={styles.teaserTitle}>{gallery.title}</span>
-              <p className={styles.teaserNote}>{gallery.note}</p>
-            </Link>
+            {gallery && (
+              <Link
+                href="/gallery"
+                className={`${styles.teaser} reveal`}
+              >
+                <span className={styles.teaserLabel}>
+                  Gallery
+                </span>
+
+                <span className={styles.teaserTitle}>
+                  {gallery.title}
+                </span>
+
+                <p className={styles.teaserNote}>
+                  {gallery.note}
+                </p>
+              </Link>
+            )}
           </div>
         </section>
       </RevealGroup>
