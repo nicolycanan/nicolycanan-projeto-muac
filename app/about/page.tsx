@@ -3,67 +3,90 @@ import styles from "./about.module.css";
 
 export const metadata: Metadata = {
   title: "About",
-  description: "O que é a MUAC neste momento, e sua relação com Nicoly.",
 };
 
 export default function AboutPage() {
   return (
     <>
       <header className={styles.header}>
-        <h1 className={styles.title}>Sobre a MUAC</h1>
+        <h1 className={styles.title}>About</h1>
       </header>
 
-      <div className={styles.content}>
-        <p className={styles.lead}>
-          A MUAC ainda não sabe exatamente o que vai ser. Por enquanto, é o
-          lugar onde guardo e comparto aquilo que acho interessante — gente,
-          música, histórias que teriam se perdido se ninguém tivesse escrito
-          sobre elas.
-        </p>
+      <main className={styles.content}>
+        <section className={styles.sectionMuac}>
+          <h2 className={styles.subtitle}>Muac</h2>
 
-        <p className={styles.p}>
-          Não é um portal de notícias, nem uma revista com pauta fechada. É
-          mais parecido com um arquivo pessoal que decidi abrir: um caderno
-          de descobertas que cresce devagar, sem pressa de estar completo.
-        </p>
+          <p>
+            A Muac ainda não sabe exatamente o que vai ser. Por enquanto, é o
+            lugar onde guardo e compartilho aquilo que acho interessante.
+            Gente, música, histórias que teriam se perdido se ninguém
+            tivesse contado sobre elas.
+          </p>
 
-        <p className={styles.p}>
-          Se você chegou até aqui pelo Instagram, essa é a ideia — o feed é
-          só a porta. O site é onde as histórias respiram de verdade.
-        </p>
+          <p>
+            Isso não é um editorial, nem uma revista com pauta fechada,
+            é quase um acervo pessoal que decidi abrir: um caderno
+            de descobertas que cresce devagar, sem pressa de estar completo.
+          </p>
 
-        <span className={`mono-label ${styles.building}`}>
-          <span className={styles.dot} aria-hidden="true" />
-          em construção — isso muda com o tempo
-        </span>
+          <p>
+            Se você chegou até aqui de alguma forma, essa é só uma porta.
+            Porque a vida real é onde as histórias acontecem de verdade.
+          </p>
 
-        <hr className={styles.divider} />
+             <div className={styles.links}>
+            <a
+              href="https://instagram.com/muaclife"
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              instagram
+            </a>
+          </div>
 
-        <h2 className={styles.name}>quem faz</h2>
+          <span className={`mono-label ${styles.building}`}>
+            <span className={styles.dot} aria-hidden="true" />
+            em construção — sem data para finalizar
+          </span>
+       
+        </section>
 
-        <p className={styles.p}>
-          Eu sou a Nicoly. A MUAC nasceu de coisas que eu já fazia sozinha —
-          gravar, fotografar, anotar, garimpar — e que em algum momento
-          pareceu fazer mais sentido reunir num lugar só. Não é uma vitrine
-          sobre mim; é mais um jeito de continuar registrando o que encontro
-          pelo caminho, com espaço pra outras pessoas aparecerem também.
-        </p>
+        <section className={styles.sectionAuthor}>
+          <h2 className={styles.subtitle}>quem faz</h2>
 
-        <p className={styles.p}>
-          Fora da MUAC eu também mexo com vídeo e tenho um canal onde publico
-          coisas mais pessoais — com o tempo, ele deve aparecer por aqui
-          também, sem se misturar com o resto.
-        </p>
+          <p>
+            A Muac é muito mais do que um acervo pessoal, exclusivo meu.
+            Ela nasce de todas as histórias e lembranças com pessoas queridas,
+            nasce de tudo o que eu queria registrar pra me lembrar de que sou
+            muito amada, mesmo quando eu esqueça disso.
+          </p>
 
-        <div className={styles.links}>
-          <a href="https://instagram.com" target="_blank" rel="noreferrer noopener">
-            instagram
-          </a>
-          <a href="https://youtube.com" target="_blank" rel="noreferrer noopener">
-            youtube
-          </a>
-        </div>
-      </div>
+          <p>
+            Eu sou a Nicoly e em algum momento pareceu fazer mais sentido 
+            reunir num lugar só. Não é uma vitrine sobre mim, é mais um jeito
+            de continuar registrando o que encontro pelo caminho,
+            com espaço pra misturar todas as pessoas aparecerem nessas histórias também.
+          </p>
+
+          <div className={styles.links}>
+            <a
+              href="https://instagram.com/nica_canan"
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              instagram
+            </a>
+
+            <a
+              href="https://www.youtube.com/@nica_canan"
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              youtube
+            </a>
+          </div>
+        </section>
+      </main>
     </>
   );
 }
