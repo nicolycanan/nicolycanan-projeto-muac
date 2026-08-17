@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import styles from "./page.module.css";
 import { RevealGroup } from "@/components/RevealGroup";
-import { getArchive, getCurrentPlaylist, getVideos, ArchiveEntry } from "@/lib/content";
+import { getArchive, getCurrentPlaylist, getGallery, ArchiveEntry } from "@/lib/content";
 import HomeFeaturedClient from "@/components/HomeFeaturedClient";
 
 export default async function Home() {
@@ -10,7 +10,7 @@ export default async function Home() {
   const featured: ArchiveEntry | null = archive && archive.length > 0 ? archive[0] : null;
   const others: ArchiveEntry[] = archive && archive.length > 1 ? archive.slice(1) : [];
   const playlist = getCurrentPlaylist();
-  const video = getVideos()[0];
+  const gallery = getGallery()[0];
 
   return (
     <>
@@ -44,9 +44,9 @@ export default async function Home() {
 
       <RevealGroup>
         {/* Featured + Carousel (client-side) */}
-        <HomeFeaturedClient featured={featured} others={others} playlist={playlist} video={video} />
+        <HomeFeaturedClient featured={featured} others={others} playlist={playlist} gallery={gallery} />
 
-        <section className={styles.section} aria-label="Radio e Video">
+        <section className={styles.section} aria-label="Radio | Gallery">
           <div className={`${styles.teasers}`}>
             <Link href="/radio" className={`${styles.teaser} reveal`}>
               <span className={styles.teaserLabel}>
@@ -57,13 +57,13 @@ export default async function Home() {
               <p className={styles.teaserNote}>{playlist.note}</p>
             </Link>
 
-            <Link href="/video" className={`${styles.teaser} reveal`}>
+            <Link href="/gallery" className={`${styles.teaser} reveal`}>
               <span className={styles.teaserLabel}>
                 <span className={styles.teaserDot} aria-hidden="true" />
                 Video
               </span>
-              <span className={styles.teaserTitle}>{video.title}</span>
-              <p className={styles.teaserNote}>{video.note}</p>
+              <span className={styles.teaserTitle}>{gallery.title}</span>
+              <p className={styles.teaserNote}>{gallery.note}</p>
             </Link>
           </div>
         </section>

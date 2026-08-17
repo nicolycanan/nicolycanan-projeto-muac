@@ -15,10 +15,10 @@ type Props = {
   featured: ArchiveEntry | null;
   others: ArchiveEntry[];
   playlist: any;
-  video: any;
+  gallery: any;
 };
 
-export default function HomeFeaturedClient({ featured, others, playlist, video }: Props) {
+export default function HomeFeaturedClient({ featured, others, playlist, gallery: video }: Props) {
   return (
     <>
       <section className={styles.section} aria-labelledby="featured-heading">

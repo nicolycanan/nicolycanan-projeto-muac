@@ -128,10 +128,10 @@ export type Playlist = {
 };
 
 /* =========================================================================
-   Videos
+   Gallery
    ========================================================================= */
 
-export type VideoEntry = {
+export type GalleryEntry = {
   slug: string;
   title: string;
   note: string;
@@ -1868,18 +1868,18 @@ export function getCurrentPlaylist(): Playlist {
 }
 
 /* =========================================================================
-   Videos
+   Gallery
    ========================================================================= */
 
-const staticVideos: VideoEntry[] =
+const staticGallery: GalleryEntry[] =
   [
     {
       slug:
         "video-001",
       title:
-        "vídeo placeholder — experimento 01",
+        "vídeo ainda não publicado",
       note:
-        "espaço reservado para o primeiro vídeo publicado pela MUAC.",
+        "espaço reservado para o primeiro vídeo.",
       cover:
         "/images/carpa.png",
       date:
@@ -1889,9 +1889,9 @@ const staticVideos: VideoEntry[] =
     },
   ];
 
-export function getVideos(): VideoEntry[] {
+export function getGallery(): GalleryEntry[] {
   return [
-    ...staticVideos,
+    ...staticGallery,
   ].sort(
     (a, b) =>
       a.date < b.date

@@ -236,7 +236,7 @@
   color: var(--ink-faint);
 }
 
-/* ---- twin teasers (radio / video) ---- */
+/* ---- twin teasers (radio / gallery) ---- */
 .teasers {
   display: grid;
   gap: var(--space-3);

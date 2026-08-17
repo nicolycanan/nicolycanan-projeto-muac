@@ -1,20 +1,20 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import styles from "./video.module.css";
-import { getVideos } from "@/lib/content";
+import styles from "./gallery.module.css";
+import { getGallery } from "@/lib/content";
 
 export const metadata: Metadata = {
-  title: "Video",
+  title: "Gallery",
   description: "Conteúdo audiovisual da MUAC e do canal da Nicoly.",
 };
 
-export default function VideoPage() {
-  const videos = getVideos();
+export default function GalleryPage() {
+  const gallery = getGallery();
 
   return (
     <>
       <header className={styles.header}>
-        <h1 className={styles.title}>Video</h1>
+        <h1 className={styles.title}>Gallery</h1>
         <p className={styles.intro}>
           Vídeos da MUAC e do canal pessoal da Nicoly, reunidos aqui sem que
           um apague o outro.
@@ -22,7 +22,7 @@ export default function VideoPage() {
       </header>
 
       <div className={styles.grid}>
-        {videos.map((v) => (
+        {gallery.map((v) => (
           <article key={v.slug} className={styles.card}>
             <div className={styles.media}>
               <Image src={v.cover} alt="" fill sizes="(min-width: 720px) 45vw, 90vw" />
