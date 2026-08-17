@@ -1,17 +1,17 @@
-﻿import { Client } from "@notionhq/client";
+import { Client } from "@notionhq/client";
 import type {
   PageObjectResponse,
   BlockObjectResponse,
 } from "@notionhq/client/build/src/api-endpoints";
 
 /**
- * MUAC content layer â€” Notion is the single source of truth.
+ * MUAC content layer — Notion is the single source of truth.
  *
  * Notion is the primary CMS.
  *
  * Archive
- *   â””â”€â”€ Profiles (Relation)
- *          â””â”€â”€ Profile
+ *   └── Profiles (Relation)
+ *          └── Profile
  *
  * IMPORTANT:
  * Since Notion API 2025-09-03, databases and data sources
@@ -33,29 +33,29 @@ import type {
 
 export type ArchiveBlock =
   | {
-      type: "paragraph";
-      text: string;
-    }
+    type: "paragraph";
+    text: string;
+  }
   | {
-      type: "quote";
-      text: string;
-      attribution?: string;
-    }
+    type: "quote";
+    text: string;
+    attribution?: string;
+  }
   | {
-      type: "image";
-      src: string;
-      alt: string;
-      caption?: string;
-    }
+    type: "image";
+    src: string;
+    alt: string;
+    caption?: string;
+  }
   | {
-      type: "heading";
-      text: string;
-    }
+    type: "heading";
+    text: string;
+  }
   | {
-      type: "list";
-      ordered: boolean;
-      items: string[];
-    };
+    type: "list";
+    ordered: boolean;
+    items: string[];
+  };
 
 /* =========================================================================
    Profiles
@@ -142,7 +142,6 @@ export type GalleryEntry = {
   tags: string[];
   featured: boolean;
 };
-
 /* =========================================================================
    Environment
    ========================================================================= */
@@ -156,9 +155,15 @@ const NOTION_DATABASE_ID =
 const NOTION_DATA_SOURCE_ID =
   process.env.NOTION_DATA_SOURCE_ID?.trim();
 
+const NOTION_GALLERY_DATABASE_ID =
+  process.env.NOTION_GALLERY_DATABASE_ID?.trim();
+
+const NOTION_GALLERY_DATA_SOURCE_ID =
+  process.env.NOTION_GALLERY_DATA_SOURCE_ID?.trim();
+
 export const NOTION_CONFIGURED = Boolean(
   NOTION_TOKEN &&
-    NOTION_DATABASE_ID
+  NOTION_DATABASE_ID
 );
 
 /* =========================================================================
@@ -171,7 +176,7 @@ function notion(): Client {
   if (!client) {
     if (!NOTION_TOKEN) {
       throw new Error(
-        "NOTION_TOKEN nÃ£o estÃ¡ definido no ambiente do servidor."
+        "NOTION_TOKEN não está definido no ambiente do servidor."
       );
     }
 
@@ -238,11 +243,11 @@ function logMatch(
   ) {
     if (propName) {
       console.log(
-        `[notion] ${entity}.${field} â† propriedade "${propName}"`
+        `[notion] ${entity}.${field} ← propriedade "${propName}"`
       );
     } else {
       console.warn(
-        `[notion] ${entity}.${field} â€” nenhuma propriedade correspondente encontrada`
+        `[notion] ${entity}.${field} — nenhuma propriedade correspondente encontrada`
       );
     }
   }
@@ -269,7 +274,7 @@ function findProp(
         entries.find(
           ([key, value]) =>
             key.toLowerCase() ===
-              name.toLowerCase() &&
+            name.toLowerCase() &&
             value.type === type
         );
 
@@ -290,17 +295,17 @@ function findProp(
 
   return anyOfType
     ? {
-        name: anyOfType[0],
-        value: anyOfType[1],
-      }
+      name: anyOfType[0],
+      value: anyOfType[1],
+    }
     : null;
 }
 
 function richTextToPlain(
   rt:
     | {
-        plain_text: string;
-      }[]
+      plain_text: string;
+    }[]
     | undefined
 ): string {
   if (!rt) {
@@ -338,7 +343,7 @@ function readTitle(
   if (
     !hit ||
     hit.value.type !==
-      "title"
+    "title"
   ) {
     return "";
   }
@@ -370,7 +375,7 @@ function readRichText(
   if (
     !hit ||
     hit.value.type !==
-      "rich_text"
+    "rich_text"
   ) {
     return "";
   }
@@ -402,7 +407,7 @@ function readNumber(
   if (
     !hit ||
     hit.value.type !==
-      "number"
+    "number"
   ) {
     return null;
   }
@@ -432,7 +437,7 @@ function readDate(
   if (
     !hit ||
     hit.value.type !==
-      "date" ||
+    "date" ||
     !hit.value.date
   ) {
     return "";
@@ -463,7 +468,7 @@ function readCheckbox(
   if (
     !hit ||
     hit.value.type !==
-      "checkbox"
+    "checkbox"
   ) {
     return null;
   }
@@ -493,7 +498,7 @@ function readSelect(
   if (
     !hit ||
     hit.value.type !==
-      "select" ||
+    "select" ||
     !hit.value.select
   ) {
     return null;
@@ -524,7 +529,7 @@ function readMultiSelect(
   if (
     !hit ||
     hit.value.type !==
-      "multi_select"
+    "multi_select"
   ) {
     return [];
   }
@@ -557,7 +562,7 @@ function readRelation(
   if (
     !hit ||
     hit.value.type !==
-      "relation"
+    "relation"
   ) {
     return [];
   }
@@ -636,9 +641,9 @@ function readFiles(
   if (
     !hit ||
     hit.value.type !==
-      "files" ||
+    "files" ||
     hit.value.files.length ===
-      0
+    0
   ) {
     return null;
   }
@@ -685,7 +690,7 @@ function readUrl(
   if (
     !hit ||
     hit.value.type !==
-      "url"
+    "url"
   ) {
     return null;
   }
@@ -747,38 +752,28 @@ function pageCoverUrl(
    Notion Data Source resolver
    ========================================================================= */
 
-let resolvedDataSourceId:
-  | string
-  | null = null;
+const resolvedDataSourceIds =
+  new Map<string, string>();
 
-async function getDataSourceId(): Promise<string> {
-  if (
-    NOTION_DATA_SOURCE_ID
-  ) {
-    return NOTION_DATA_SOURCE_ID;
+async function getDataSourceId(
+  databaseId: string,
+  explicitDataSourceId?: string
+): Promise<string> {
+  if (explicitDataSourceId) {
+    return explicitDataSourceId;
   }
 
-  if (
-    resolvedDataSourceId
-  ) {
-    return resolvedDataSourceId;
-  }
+  const cached =
+    resolvedDataSourceIds.get(databaseId);
 
-  if (
-    !NOTION_DATABASE_ID
-  ) {
-    throw new Error(
-      "NOTION_DATABASE_ID nÃ£o estÃ¡ definido."
-    );
+  if (cached) {
+    return cached;
   }
 
   const database =
-    await notion().databases.retrieve(
-      {
-        database_id:
-          NOTION_DATABASE_ID,
-      }
-    );
+    await notion().databases.retrieve({
+      database_id: databaseId,
+    });
 
   /**
    * The SDK typings can differ between versions,
@@ -793,37 +788,37 @@ async function getDataSourceId(): Promise<string> {
     };
 
   const sources =
-    databaseWithSources.data_sources ??
-    [];
+    databaseWithSources.data_sources ?? [];
 
-  if (
-    sources.length ===
-    0
-  ) {
+  if (sources.length === 0) {
     throw new Error(
       [
         "Nenhum Data Source foi encontrado dentro do database do Notion.",
-        `Database ID: ${NOTION_DATABASE_ID}`,
-        "Verifique se a integraÃ§Ã£o tem acesso ao database.",
+        `Database ID: ${databaseId}`,
+        "Verifique se a integração tem acesso ao database.",
       ].join(" ")
     );
   }
 
-  resolvedDataSourceId =
+  const dataSourceId =
     sources[0].id;
+
+  resolvedDataSourceIds.set(
+    databaseId,
+    dataSourceId
+  );
 
   if (
     process.env.NODE_ENV !==
     "production"
   ) {
     console.log(
-      `[notion] Data Source resolvido automaticamente: ${resolvedDataSourceId}`
+      `[notion] Data Source resolvido automaticamente: ${dataSourceId} (database ${databaseId})`
     );
   }
 
-  return resolvedDataSourceId;
+  return dataSourceId;
 }
-
 /* =========================================================================
    Profile resolver
    ========================================================================= */
@@ -909,7 +904,7 @@ async function getProfileById(
             [
               "Bio",
               "Biography",
-              "DescriÃ§Ã£o",
+              "Descrição",
               "Description",
             ]
           );
@@ -921,8 +916,8 @@ async function getProfileById(
             "role",
             [
               "Role",
-              "FunÃ§Ã£o",
-              "ProfissÃ£o",
+              "Função",
+              "Profissão",
               "Occupation",
             ]
           );
@@ -974,16 +969,16 @@ async function getProfileById(
           );
 
         const profile: Profile =
-          {
-            id: page.id,
-            name,
-            slug,
-            bio,
-            avatar,
-            role,
-            instagram,
-            website,
-          };
+        {
+          id: page.id,
+          name,
+          slug,
+          bio,
+          avatar,
+          role,
+          instagram,
+          website,
+        };
 
         profileCache.set(
           profileId,
@@ -1054,7 +1049,7 @@ async function resolveProfileReferences(
 }
 
 /* =========================================================================
-   Archive â†’ Notion mapping
+   Archive → Notion mapping
    ========================================================================= */
 
 async function mapPageToEntry(
@@ -1072,7 +1067,7 @@ async function mapPageToEntry(
       props,
       entity
     ) ||
-    "sem tÃ­tulo";
+    "sem título";
 
   const explicitSlug =
     readRichText(
@@ -1092,9 +1087,9 @@ async function mapPageToEntry(
       "number",
       [
         "Number",
-        "NÃºmero",
+        "Número",
         "Num",
-        "Ãndice",
+        "Índice",
       ]
     );
 
@@ -1118,7 +1113,7 @@ async function mapPageToEntry(
       "role",
       [
         "Role",
-        "FunÃ§Ã£o",
+        "Função",
         "Papel",
       ]
     );
@@ -1131,7 +1126,7 @@ async function mapPageToEntry(
       [
         "Dek",
         "Resumo",
-        "DescriÃ§Ã£o",
+        "Descrição",
         "Chamada",
       ]
     );
@@ -1198,7 +1193,7 @@ async function mapPageToEntry(
       [
         "Published Date",
         "Data",
-        "Data de publicaÃ§Ã£o",
+        "Data de publicação",
       ]
     ) ||
     page.created_time;
@@ -1224,17 +1219,17 @@ async function mapPageToEntry(
     number:
       number !== null
         ? String(
-            number
-          ).padStart(
-            3,
-            "0"
-          )
+          number
+        ).padStart(
+          3,
+          "0"
+        )
         : String(
-            index + 1
-          ).padStart(
-            3,
-            "0"
-          ),
+          index + 1
+        ).padStart(
+          3,
+          "0"
+        ),
 
     title,
     subject,
@@ -1256,17 +1251,17 @@ async function mapPageToEntry(
 function richTextArrayToPlain(
   rt:
     | {
-        plain_text: string;
-      }[]
+      plain_text: string;
+    }[]
     | undefined
 ): string {
   return rt
     ? rt
-        .map(
-          (item) =>
-            item.plain_text
-        )
-        .join("")
+      .map(
+        (item) =>
+          item.plain_text
+      )
+      .join("")
     : "";
 }
 
@@ -1278,9 +1273,9 @@ function mapBlocks(
 
   let pendingList:
     | {
-        ordered: boolean;
-        items: string[];
-      }
+      ordered: boolean;
+      items: string[];
+    }
     | null = null;
 
   const flushList =
@@ -1322,25 +1317,25 @@ function mapBlocks(
       }
     } else if (
       block.type ===
-        "heading_1" ||
+      "heading_1" ||
       block.type ===
-        "heading_2" ||
+      "heading_2" ||
       block.type ===
-        "heading_3"
+      "heading_3"
     ) {
       flushList();
 
       const richText =
         block.type ===
-        "heading_1"
+          "heading_1"
           ? block.heading_1
-              .rich_text
+            .rich_text
           : block.type ===
-              "heading_2"
+            "heading_2"
             ? block.heading_2
-                .rich_text
+              .rich_text
             : block.heading_3
-                .rich_text;
+              .rich_text;
 
       out.push({
         type: "heading",
@@ -1374,7 +1369,7 @@ function mapBlocks(
 
       const url =
         image.type ===
-        "external"
+          "external"
           ? image.external.url
           : image.file.url;
 
@@ -1478,7 +1473,7 @@ async function getAllBlocks(
     for (const result of response.results) {
       if (
         typeof result ===
-          "object" &&
+        "object" &&
         result !== null &&
         "type" in result
       ) {
@@ -1490,7 +1485,7 @@ async function getAllBlocks(
 
     cursor =
       response.has_more &&
-      response.next_cursor
+        response.next_cursor
         ? response.next_cursor
         : undefined;
   } while (cursor);
@@ -1513,8 +1508,10 @@ async function queryPublishedArchive(): Promise<
   }
 
   const dataSourceId =
-    await getDataSourceId();
-
+    await getDataSourceId(
+      NOTION_DATABASE_ID,
+      NOTION_DATA_SOURCE_ID
+    );
   const results: PageObjectResponse[] =
     [];
 
@@ -1531,9 +1528,9 @@ async function queryPublishedArchive(): Promise<
 
           ...(cursor
             ? {
-                start_cursor:
-                  cursor,
-              }
+              start_cursor:
+                cursor,
+            }
             : {}),
 
           page_size: 100,
@@ -1562,7 +1559,7 @@ async function queryPublishedArchive(): Promise<
 
     cursor =
       response.has_more &&
-      response.next_cursor
+        response.next_cursor
         ? response.next_cursor
         : undefined;
   } while (cursor);
@@ -1602,14 +1599,14 @@ async function queryPublishedArchive(): Promise<
     (page) => {
       const property =
         page.properties[
-          publishedHit.name
+        publishedHit.name
         ];
 
       return (
         property.type ===
-          "checkbox" &&
+        "checkbox" &&
         property.checkbox ===
-          true
+        true
       );
     }
   );
@@ -1630,7 +1627,7 @@ export async function getArchive(): Promise<
       "production"
     ) {
       console.warn(
-        "[notion] NOTION_DATABASE_ID nÃ£o configurado â€” retornando array vazio"
+        "[notion] NOTION_DATABASE_ID não configurado — retornando array vazio"
       );
     }
 
@@ -1643,7 +1640,7 @@ export async function getArchive(): Promise<
       "production"
     ) {
       console.warn(
-        "[notion] NOTION_TOKEN nÃ£o configurado â€” retornando array vazio"
+        "[notion] NOTION_TOKEN não configurado — retornando array vazio"
       );
     }
 
@@ -1663,7 +1660,7 @@ export async function getArchive(): Promise<
         "production"
       ) {
         console.warn(
-          "[notion] query retornou 0 resultados â€” getArchive retornarÃ¡ array vazio"
+          "[notion] query retornou 0 resultados — getArchive retornará array vazio"
         );
       }
 
@@ -1901,7 +1898,7 @@ const staticPlaylists: Playlist[] =
       title:
         "playlists autoexplicativa",
       note:
-        "eu quando tenho muito amor pra dar â€” atualizada sem aviso.",
+        "eu quando tenho muito amor pra dar — atualizada sem aviso.",
       cover:
         "/images/carpa.png",
       date:
@@ -1916,7 +1913,7 @@ const staticPlaylists: Playlist[] =
       slug:
         "playlist-002",
       title:
-        "o que se passsa na minha cabeÃ§a",
+        "o que se passsa na minha cabeça",
       note:
         "uma curadoria de tudo que (in)felizmente sou...",
       cover:
@@ -1955,7 +1952,7 @@ async function mapPageToGalleryEntry(
   const props = page.properties;
   const entity = `Gallery[${index}]`;
 
-  const title = readTitle(props, entity) || "sem tÃ­tulo";
+  const title = readTitle(props, entity) || "sem título";
 
   const explicitSlug = readRichText(props, entity, "slug", ["Slug", "slug"]);
 
@@ -1975,7 +1972,7 @@ async function mapPageToGalleryEntry(
     "Caption",
     "Legenda",
     "Description",
-    "DescriÃ§Ã£o",
+    "Descrição",
   ]);
 
   // Date
@@ -1984,7 +1981,7 @@ async function mapPageToGalleryEntry(
       "Date",
       "Data",
       "Published Date",
-      "Data de publicaÃ§Ã£o",
+      "Data de publicação",
     ]) || page.created_time;
 
   // Source
@@ -2014,59 +2011,84 @@ async function mapPageToGalleryEntry(
 }
 
 async function queryPublishedGallery(): Promise<PageObjectResponse[]> {
-  if (!NOTION_DATABASE_ID || !NOTION_TOKEN) {
+  if (!NOTION_GALLERY_DATABASE_ID || !NOTION_TOKEN) {
     return [];
   }
 
-  const dataSourceId = await getDataSourceId();
+  try {
+    const dataSourceId = await getDataSourceId(
+      NOTION_GALLERY_DATABASE_ID,
+      NOTION_GALLERY_DATA_SOURCE_ID
+    );
 
-  const results: PageObjectResponse[] = [];
+    const results: PageObjectResponse[] = [];
 
-  let cursor: string | undefined;
+    let cursor: string | undefined;
 
-  do {
-    const response = await notion().dataSources.query({
-      data_source_id: dataSourceId,
-      ...(cursor ? { start_cursor: cursor } : {}),
-      page_size: 100,
-    });
+    do {
+      const response = await notion().dataSources.query({
+        data_source_id: dataSourceId,
+        ...(cursor ? { start_cursor: cursor } : {}),
+        page_size: 100,
+      });
 
-    for (const result of response.results) {
-      if (isPageObject(result)) {
-        results.push(result);
+      for (const result of response.results) {
+        if (isPageObject(result)) {
+          results.push(result);
+        }
       }
+
+      cursor =
+        response.has_more && response.next_cursor
+          ? response.next_cursor
+          : undefined;
+    } while (cursor);
+
+    if (results.length === 0) {
+      return results;
     }
 
-    cursor = response.has_more && response.next_cursor ? response.next_cursor : undefined;
-  } while (cursor);
+    const publishedHit = findProp(
+      results[0].properties,
+      "checkbox",
+      ["Published", "Publicado", "Public"]
+    );
 
-  if (results.length === 0) {
-    return results;
+    if (!publishedHit) {
+      return results;
+    }
+
+    return results.filter((page) => {
+      const property = page.properties[publishedHit.name];
+
+      return (
+        property.type === "checkbox" &&
+        property.checkbox === true
+      );
+    });
+  } catch (error) {
+    console.warn("[notion] erro ao consultar Gallery", error);
+    return [];
   }
-
-  const publishedHit = findProp(results[0].properties, "checkbox", ["Published", "Publicado", "Public"]);
-
-  if (!publishedHit) {
-    return results;
-  }
-
-  return results.filter((page) => {
-    const property = page.properties[publishedHit.name];
-    return property.type === "checkbox" && property.checkbox === true;
-  });
 }
 
 export async function getGallery(): Promise<GalleryEntry[]> {
-  if (!NOTION_DATABASE_ID) {
-    if (process.env.NODE_ENV !== "production") {
-      console.warn("[notion] NOTION_DATABASE_ID nÃ£o configurado â€” retornando array vazio");
+  if (!NOTION_GALLERY_DATABASE_ID) {
+    if (
+      process.env.NODE_ENV !==
+      "production"
+    ) {
+      console.warn(
+        "[notion] NOTION_GALLERY_DATABASE_ID não configurado — Gallery retornará array vazio"
+      );
     }
+
     return [];
   }
 
   if (!NOTION_TOKEN) {
     if (process.env.NODE_ENV !== "production") {
-      console.warn("[notion] NOTION_TOKEN nÃ£o configurado â€” retornando array vazio");
+      console.warn("[notion] NOTION_TOKEN não configurado — retornando array vazio");
     }
     return [];
   }
@@ -2076,7 +2098,7 @@ export async function getGallery(): Promise<GalleryEntry[]> {
 
     if (pages.length === 0) {
       if (process.env.NODE_ENV !== "production") {
-        console.warn("[notion] query retornou 0 resultados â€” getGallery retornarÃ¡ array vazio");
+        console.warn("[notion] query retornou 0 resultados — getGallery retornará array vazio");
       }
       return [];
     }
