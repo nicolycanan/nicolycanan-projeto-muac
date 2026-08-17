@@ -60,7 +60,7 @@ export default async function Home() {
             <Link href="/gallery" className={`${styles.teaser} reveal`}>
               <span className={styles.teaserLabel}>
                 <span className={styles.teaserDot} aria-hidden="true" />
-                Video
+                Gallery
               </span>
               <span className={styles.teaserTitle}>{gallery.title}</span>
               <p className={styles.teaserNote}>{gallery.note}</p>

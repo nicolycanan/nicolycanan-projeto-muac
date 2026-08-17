@@ -1,4 +1,3 @@
-// components/HomeFeaturedClient.tsx
 "use client";
 
 import React from "react";
@@ -6,9 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import type { ArchiveEntry } from "@/lib/content";
 import Carousel from "./Carousel";
-// Recomendo criar um CSS module específico para este componente:
-// import styles from "./HomeFeaturedClient.module.css";
-// Se preferir usar o module da página, mantenha a linha abaixo (já estava no seu projeto).
+
 import styles from "@/app/page.module.css";
 
 type Props = {
@@ -18,7 +15,7 @@ type Props = {
   gallery: any;
 };
 
-export default function HomeFeaturedClient({ featured, others, playlist, gallery: video }: Props) {
+export default function HomeFeaturedClient({ featured, others, playlist, gallery: gallery }: Props) {
   return (
     <>
       <section className={styles.section} aria-labelledby="featured-heading">

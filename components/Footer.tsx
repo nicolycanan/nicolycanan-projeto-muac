@@ -10,7 +10,7 @@ export function Footer() {
         <nav className={styles.links}>
           <Link href="/archive">Archive</Link>
           <Link href="/radio">Radio</Link>
-          <Link href="/video">Video</Link>
+          <Link href="/gallery">Gallery</Link>
           <Link href="/about">About</Link>
         </nav>
       </div>

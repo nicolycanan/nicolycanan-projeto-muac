@@ -6,9 +6,10 @@ import { usePathname } from "next/navigation";
 import styles from "./Header.module.css";
 
 const NAV = [
+  { href: "/", label: "Home", index: "00" },
   { href: "/archive", label: "Archive", index: "01" },
   { href: "/radio", label: "Radio", index: "02" },
-  { href: "/video", label: "Video", index: "03" },
+  { href: "/gallery", label: "Gallery", index: "03" },
   { href: "/about", label: "About", index: "04" },
 ];
 
