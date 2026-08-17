@@ -132,13 +132,15 @@ export type Playlist = {
    ========================================================================= */
 
 export type GalleryEntry = {
+  id: string;
   slug: string;
   title: string;
-  note: string;
-  youtubeId?: string;
-  cover: string;
+  caption: string;
+  image: string;
   date: string;
   source: "muac" | "nicoly";
+  tags: string[];
+  featured: boolean;
 };
 
 /* =========================================================================
@@ -537,6 +539,49 @@ function readRelation(
     .filter(Boolean);
 }
 
+function readFilesArray(
+  props: Props,
+  entity: string,
+  field: string,
+  candidates: string[]
+): string[] {
+  const hit = findProp(
+    props,
+    "files",
+    candidates
+  );
+
+  logMatch(
+    entity,
+    field,
+    hit?.name ?? null
+  );
+
+  if (
+    !hit ||
+    hit.value.type !== "files"
+  ) {
+    return [];
+  }
+
+  return hit.value.files
+    .map((file) => {
+      if (file.type === "external") {
+        return file.external.url;
+      }
+
+      if (file.type === "file") {
+        return file.file.url;
+      }
+
+      return null;
+    })
+    .filter(
+      (url): url is string =>
+        Boolean(url)
+    );
+}
+
 function readFiles(
   props: Props,
   entity: string,
@@ -555,6 +600,7 @@ function readFiles(
     field,
     hit?.name ?? null
   );
+
 
   if (
     !hit ||
