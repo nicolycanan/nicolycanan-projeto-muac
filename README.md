@@ -1,8 +1,8 @@
 # MUAC
 
-uma publicação pessoal sobre coisas que eu quero lembrar.
+uma projeto pessoal sobre coisas que eu quero lembrar.
 
-[visitar site]
+ainda em localhost.
 
 ## Sobre
 
