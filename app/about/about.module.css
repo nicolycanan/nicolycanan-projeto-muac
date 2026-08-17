@@ -1,0 +1,71 @@
+.header {
+  padding: var(--space-1) var(--edge) var(--space-4);
+}
+
+.title {
+  font-family: var(--font-hand);
+  font-size: var(--fs-hand-xl);
+  line-height: 0.95;
+}
+
+.content {
+  padding: var(--space-3) var(--edge) var(--space-6);
+  max-width: 68ch;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.lead {
+  font-size: var(--fs-body-lg);
+  color: var(--ink);
+}
+
+.p {
+  color: var(--ink-dim);
+}
+
+.building {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 0.5em;
+  margin-top: var(--space-1);
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--stamp);
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid var(--line);
+  margin: var(--space-2) 0;
+}
+
+.name {
+  font-family: var(--font-hand);
+  font-size: var(--fs-hand-lg);
+}
+
+.links {
+  margin-top: var(--space-1);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-family: var(--font-ui);
+  font-size: var(--fs-small);
+  color: var(--ink-dim);
+}
+
+.links a {
+  border-bottom: 1px solid var(--line-strong);
+}
+
+.links a:hover {
+  color: var(--stamp-ink);
+  border-color: var(--stamp-ink);
+}

@@ -1,0 +1,145 @@
+/* components/Carousel.module.css */
+
+.carousel {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.nav {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: 28px;
+  cursor: pointer;
+  padding: 8px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Visual hint for keyboard focus */
+.nav:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.12);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Viewport hides overflow — the track is translated inside */
+.viewport {
+  overflow: hidden;
+  flex: 1;
+  min-width: 0; /* allow shrinking inside flex */
+  position: relative;
+}
+
+/* Track contains all cards in a single row */
+.track {
+  display: flex;
+  will-change: transform;
+  align-items: stretch;
+}
+
+/* Each card is flex-shrink:0 so width calculation in JS works */
+.card {
+  padding: 8px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Link wrapper */
+.cardLink {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  height: 100%;
+}
+
+/* Media area: preserve 16:10 aspect ratio */
+.cardMedia {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #0b0b0b;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+}
+
+/* Small gradient overlay to make text readable on image */
+.cardMedia::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0) 40%, rgba(0,0,0,0.42) 100%);
+  pointer-events: none;
+}
+
+/* Body under the image */
+.cardBody {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Kicker and title styles */
+.cardKicker {
+  font-size: 0.75rem;
+  opacity: 0.85;
+  color: rgba(255,255,255,0.75);
+}
+
+.cardTitle {
+  font-weight: 600;
+  margin-top: 0;
+  color: inherit;
+  line-height: 1.2;
+}
+
+/* Placeholder when there are no items */
+.empty {
+  padding: 12px;
+  color: rgba(255,255,255,0.7);
+}
+
+/* Small note when others list is empty */
+.emptyNote {
+  color: rgba(255,255,255,0.6);
+  font-size: 0.95rem;
+}
+
+/* Responsive tweaks */
+/* On narrow screens show fewer items visually; JS still calculates widths */
+@media (max-width: 880px) {
+  .nav {
+    font-size: 22px;
+    padding: 6px;
+  }
+  .card {
+    padding: 6px;
+  }
+  .cardKicker {
+    font-size: 0.7rem;
+  }
+}
+
+/* Slight hover effect for cards */
+.cardLink:hover .cardMedia,
+.cardLink:focus .cardMedia {
+  transform: translateY(-4px);
+  transition: transform 180ms ease;
+}
+
+/* Ensure images fill and are positioned nicely */
+.cardMedia img,
+.cardMedia picture,
+.cardMedia .next-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

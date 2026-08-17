@@ -1,0 +1,192 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: var(--space-2) var(--edge);
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid transparent;
+  transition: border-color var(--dur-med) var(--ease), background var(--dur-med) var(--ease);
+}
+
+.header[data-scrolled="true"] {
+  border-bottom-color: var(--line);
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.burger {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 30px;
+  height: 30px;
+  padding: 4px;
+}
+
+.burger span {
+  display: block;
+  height: 2px;
+  width: 100%;
+  background: var(--ink);
+  transition: transform var(--dur-fast) var(--ease), opacity var(--dur-fast) var(--ease), width var(--dur-fast) var(--ease);
+}
+
+.burger:hover span:first-child {
+  width: 70%;
+}
+
+.burger[data-open="true"] span:first-child {
+  transform: translateY(7px) rotate(45deg);
+}
+.burger[data-open="true"] span:last-child {
+  transform: translateY(-7px) rotate(-45deg);
+  width: 100%;
+}
+
+.logo {
+  font-family: var(--font-hand);
+  font-size: 1.9rem;
+  line-height: 1;
+  justify-self: center;
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.themeToggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  font-family: var(--font-ui);
+  font-size: var(--fs-label);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  padding: 0.4em 0.2em;
+}
+
+.themeToggle:hover {
+  color: var(--ink);
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--stamp);
+}
+
+/* ---- overlay menu ---- */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--space-2) var(--edge);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  transition: opacity var(--dur-med) var(--ease), transform var(--dur-med) var(--ease), visibility 0s linear var(--dur-med);
+}
+
+.overlay[data-open="true"] {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  transition: opacity var(--dur-med) var(--ease), transform var(--dur-med) var(--ease), visibility 0s;
+}
+
+.overlayTop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--edge);
+}
+
+.navList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2em;
+}
+
+.navItem {
+  overflow: hidden;
+}
+
+.navLink {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: clamp(1.8rem, 7vw, 3.5rem);
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  padding: 0.08em 0;
+  color: var(--ink-faint);
+  transition: color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+  transform: translateY(110%);
+}
+
+.overlay[data-open="true"] .navLink {
+  transform: translateY(0);
+  transition: transform var(--dur-slow) var(--ease), color var(--dur-fast) var(--ease);
+}
+
+.navItem:nth-child(1) .navLink { transition-delay: 0.05s; }
+.navItem:nth-child(2) .navLink { transition-delay: 0.1s; }
+.navItem:nth-child(3) .navLink { transition-delay: 0.15s; }
+.navItem:nth-child(4) .navLink { transition-delay: 0.2s; }
+
+.navLink:hover,
+.navLink:focus-visible {
+  color: var(--ink);
+}
+
+.navIndex {
+  font-family: var(--font-ui);
+  font-size: var(--fs-small);
+  color: var(--stamp);
+}
+
+.overlayFoot {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: var(--space-3) var(--edge);
+  font-family: var(--font-ui);
+  font-size: var(--fs-small);
+  color: var(--ink-faint);
+}
+
+.overlayFoot a:hover {
+  color: var(--ink);
+}
+
+@media (min-width: 860px) {
+  .navList {
+    gap: 0.4em;
+  }
+}
