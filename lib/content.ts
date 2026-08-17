@@ -1,17 +1,17 @@
-import { Client } from "@notionhq/client";
+﻿import { Client } from "@notionhq/client";
 import type {
   PageObjectResponse,
   BlockObjectResponse,
 } from "@notionhq/client/build/src/api-endpoints";
 
 /**
- * MUAC content layer — Notion is the single source of truth.
+ * MUAC content layer â€” Notion is the single source of truth.
  *
  * Notion is the primary CMS.
  *
  * Archive
- *   └── Profiles (Relation)
- *          └── Profile
+ *   â””â”€â”€ Profiles (Relation)
+ *          â””â”€â”€ Profile
  *
  * IMPORTANT:
  * Since Notion API 2025-09-03, databases and data sources
@@ -136,8 +136,7 @@ export type GalleryEntry = {
   slug: string;
   title: string;
   note: string;
-  youtubeId?: string;
-  cover: string;
+  image: string;
   date: string;
   source: "muac" | "nicoly";
   tags: string[];
@@ -172,7 +171,7 @@ function notion(): Client {
   if (!client) {
     if (!NOTION_TOKEN) {
       throw new Error(
-        "NOTION_TOKEN não está definido no ambiente do servidor."
+        "NOTION_TOKEN nÃ£o estÃ¡ definido no ambiente do servidor."
       );
     }
 
@@ -239,11 +238,11 @@ function logMatch(
   ) {
     if (propName) {
       console.log(
-        `[notion] ${entity}.${field} ← propriedade "${propName}"`
+        `[notion] ${entity}.${field} â† propriedade "${propName}"`
       );
     } else {
       console.warn(
-        `[notion] ${entity}.${field} — nenhuma propriedade correspondente encontrada`
+        `[notion] ${entity}.${field} â€” nenhuma propriedade correspondente encontrada`
       );
     }
   }
@@ -769,7 +768,7 @@ async function getDataSourceId(): Promise<string> {
     !NOTION_DATABASE_ID
   ) {
     throw new Error(
-      "NOTION_DATABASE_ID não está definido."
+      "NOTION_DATABASE_ID nÃ£o estÃ¡ definido."
     );
   }
 
@@ -805,7 +804,7 @@ async function getDataSourceId(): Promise<string> {
       [
         "Nenhum Data Source foi encontrado dentro do database do Notion.",
         `Database ID: ${NOTION_DATABASE_ID}`,
-        "Verifique se a integração tem acesso ao database.",
+        "Verifique se a integraÃ§Ã£o tem acesso ao database.",
       ].join(" ")
     );
   }
@@ -910,7 +909,7 @@ async function getProfileById(
             [
               "Bio",
               "Biography",
-              "Descrição",
+              "DescriÃ§Ã£o",
               "Description",
             ]
           );
@@ -922,8 +921,8 @@ async function getProfileById(
             "role",
             [
               "Role",
-              "Função",
-              "Profissão",
+              "FunÃ§Ã£o",
+              "ProfissÃ£o",
               "Occupation",
             ]
           );
@@ -1055,7 +1054,7 @@ async function resolveProfileReferences(
 }
 
 /* =========================================================================
-   Archive → Notion mapping
+   Archive â†’ Notion mapping
    ========================================================================= */
 
 async function mapPageToEntry(
@@ -1073,7 +1072,7 @@ async function mapPageToEntry(
       props,
       entity
     ) ||
-    "sem título";
+    "sem tÃ­tulo";
 
   const explicitSlug =
     readRichText(
@@ -1093,9 +1092,9 @@ async function mapPageToEntry(
       "number",
       [
         "Number",
-        "Número",
+        "NÃºmero",
         "Num",
-        "Índice",
+        "Ãndice",
       ]
     );
 
@@ -1119,7 +1118,7 @@ async function mapPageToEntry(
       "role",
       [
         "Role",
-        "Função",
+        "FunÃ§Ã£o",
         "Papel",
       ]
     );
@@ -1132,7 +1131,7 @@ async function mapPageToEntry(
       [
         "Dek",
         "Resumo",
-        "Descrição",
+        "DescriÃ§Ã£o",
         "Chamada",
       ]
     );
@@ -1199,7 +1198,7 @@ async function mapPageToEntry(
       [
         "Published Date",
         "Data",
-        "Data de publicação",
+        "Data de publicaÃ§Ã£o",
       ]
     ) ||
     page.created_time;
@@ -1631,7 +1630,7 @@ export async function getArchive(): Promise<
       "production"
     ) {
       console.warn(
-        "[notion] NOTION_DATABASE_ID não configurado — retornando array vazio"
+        "[notion] NOTION_DATABASE_ID nÃ£o configurado â€” retornando array vazio"
       );
     }
 
@@ -1644,7 +1643,7 @@ export async function getArchive(): Promise<
       "production"
     ) {
       console.warn(
-        "[notion] NOTION_TOKEN não configurado — retornando array vazio"
+        "[notion] NOTION_TOKEN nÃ£o configurado â€” retornando array vazio"
       );
     }
 
@@ -1664,7 +1663,7 @@ export async function getArchive(): Promise<
         "production"
       ) {
         console.warn(
-          "[notion] query retornou 0 resultados — getArchive retornará array vazio"
+          "[notion] query retornou 0 resultados â€” getArchive retornarÃ¡ array vazio"
         );
       }
 
@@ -1902,7 +1901,7 @@ const staticPlaylists: Playlist[] =
       title:
         "playlists autoexplicativa",
       note:
-        "eu quando tenho muito amor pra dar — atualizada sem aviso.",
+        "eu quando tenho muito amor pra dar â€” atualizada sem aviso.",
       cover:
         "/images/carpa.png",
       date:
@@ -1917,7 +1916,7 @@ const staticPlaylists: Playlist[] =
       slug:
         "playlist-002",
       title:
-        "o que se passsa na minha cabeça",
+        "o que se passsa na minha cabeÃ§a",
       note:
         "uma curadoria de tudo que (in)felizmente sou...",
       cover:
@@ -1956,7 +1955,7 @@ async function mapPageToGalleryEntry(
   const props = page.properties;
   const entity = `Gallery[${index}]`;
 
-  const title = readTitle(props, entity) || "sem título";
+  const title = readTitle(props, entity) || "sem tÃ­tulo";
 
   const explicitSlug = readRichText(props, entity, "slug", ["Slug", "slug"]);
 
@@ -1976,7 +1975,7 @@ async function mapPageToGalleryEntry(
     "Caption",
     "Legenda",
     "Description",
-    "Descrição",
+    "DescriÃ§Ã£o",
   ]);
 
   // Date
@@ -1985,7 +1984,7 @@ async function mapPageToGalleryEntry(
       "Date",
       "Data",
       "Published Date",
-      "Data de publicação",
+      "Data de publicaÃ§Ã£o",
     ]) || page.created_time;
 
   // Source
@@ -2060,14 +2059,14 @@ async function queryPublishedGallery(): Promise<PageObjectResponse[]> {
 export async function getGallery(): Promise<GalleryEntry[]> {
   if (!NOTION_DATABASE_ID) {
     if (process.env.NODE_ENV !== "production") {
-      console.warn("[notion] NOTION_DATABASE_ID não configurado — retornando array vazio");
+      console.warn("[notion] NOTION_DATABASE_ID nÃ£o configurado â€” retornando array vazio");
     }
     return [];
   }
 
   if (!NOTION_TOKEN) {
     if (process.env.NODE_ENV !== "production") {
-      console.warn("[notion] NOTION_TOKEN não configurado — retornando array vazio");
+      console.warn("[notion] NOTION_TOKEN nÃ£o configurado â€” retornando array vazio");
     }
     return [];
   }
@@ -2077,7 +2076,7 @@ export async function getGallery(): Promise<GalleryEntry[]> {
 
     if (pages.length === 0) {
       if (process.env.NODE_ENV !== "production") {
-        console.warn("[notion] query retornou 0 resultados — getGallery retornará array vazio");
+        console.warn("[notion] query retornou 0 resultados â€” getGallery retornarÃ¡ array vazio");
       }
       return [];
     }
