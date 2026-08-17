@@ -1,100 +1,72 @@
-.header {
-  padding: var(--space-1) var(--edge) var(--space-4);
+.page {
+  padding: var(--space-1) var(--edge) var(--space-6);
 }
 
-.title {
+.header {
+  padding-bottom: var(--space-2);
+}
+
+.header h1 {
   font-family: var(--font-hand);
   font-size: var(--fs-hand-lg);
-  margin-top: var(--space-1);
+  margin: 0;
 }
 
-.intro {
-  margin-top: var(--space-2);
-  max-width: 56ch;
-  color: var(--ink-dim);
-}
-
-.grid {
-  margin: 0 var(--edge) var(--space-6);
+.gallery {
   display: grid;
-  gap: var(--space-3);
+  gap: var(--space-4);
   grid-template-columns: 1fr;
+  margin: 0 var(--edge);
 }
 
-.card {
-  border: 1px solid var(--line);
-  overflow: hidden;
-  transition: border-color var(--dur-fast) var(--ease);
+.item {
+  display: block;
 }
 
-.card:hover {
-  border-color: var(--line-strong);
-}
-
-.media {
-  position: relative;
-  aspect-ratio: 16 / 9;
+.imageWrapper {
+  width: 100%;
   background: var(--bg-panel);
 }
 
-.media img {
+.imageWrapper img {
+  display: block;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: grayscale(0.2);
+  height: auto;
 }
 
-.play {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-ui);
-  font-size: var(--fs-small);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink);
-  background: color-mix(in srgb, var(--bg) 35%, transparent);
-  opacity: 0;
-  transition: opacity var(--dur-fast) var(--ease);
+.meta {
+  padding: var(--space-2) 0;
 }
 
-.card:hover .play,
-.card:focus-within .play {
-  opacity: 1;
-}
-
-.body {
-  padding: var(--space-2);
-  display: flex;
-  flex-direction: column;
-  gap: 0.4em;
-}
-
-.source {
-  display: inline-flex;
-  align-self: flex-start;
-  font-family: var(--font-ui);
-  font-size: var(--fs-label);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--stamp);
-}
-
-.cardTitle {
+.meta h2 {
+  margin: 0 0 0.25em 0;
   font-family: var(--font-hand);
   font-size: var(--fs-hand-md);
-  line-height: 1.15;
 }
 
-.note {
+.meta p {
+  margin: 0 0 0.5em 0;
+  color: var(--ink-dim);
+}
+
+.meta time {
+  display: block;
   color: var(--ink-dim);
   font-size: var(--fs-small);
 }
 
+.empty {
+  margin: var(--space-4) 0;
+  color: var(--ink-dim);
+}
+
 @media (min-width: 720px) {
-  .grid {
+  .gallery {
     grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+
+  .item:nth-child(odd) .imageWrapper img {
+    /* allow natural proportions — no forced cropping */
   }
 }

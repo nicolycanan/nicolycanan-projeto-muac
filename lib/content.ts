@@ -135,8 +135,9 @@ export type GalleryEntry = {
   id: string;
   slug: string;
   title: string;
-  caption: string;
-  image: string;
+  note: string;
+  youtubeId?: string;
+  cover: string;
   date: string;
   source: "muac" | "nicoly";
   tags: string[];
@@ -469,6 +470,37 @@ function readCheckbox(
   }
 
   return hit.value.checkbox;
+}
+
+function readSelect(
+  props: Props,
+  entity: string,
+  field: string,
+  candidates: string[]
+): string | null {
+  const hit =
+    findProp(
+      props,
+      "select",
+      candidates
+    );
+
+  logMatch(
+    entity,
+    field,
+    hit?.name ?? null
+  );
+
+  if (
+    !hit ||
+    hit.value.type !==
+      "select" ||
+    !hit.value.select
+  ) {
+    return null;
+  }
+
+  return hit.value.select.name;
 }
 
 function readMultiSelect(
@@ -1917,31 +1949,150 @@ export function getCurrentPlaylist(): Playlist {
    Gallery
    ========================================================================= */
 
-const staticGallery: GalleryEntry[] =
-  [
-    {
-      slug:
-        "video-001",
-      title:
-        "vídeo ainda não publicado",
-      note:
-        "espaço reservado para o primeiro vídeo.",
-      cover:
-        "/images/carpa.png",
-      date:
-        "2026-07-01",
-      source:
-        "muac",
-    },
-  ];
+async function mapPageToGalleryEntry(
+  page: PageObjectResponse,
+  index: number
+): Promise<GalleryEntry> {
+  const props = page.properties;
+  const entity = `Gallery[${index}]`;
 
-export function getGallery(): GalleryEntry[] {
-  return [
-    ...staticGallery,
-  ].sort(
-    (a, b) =>
-      a.date < b.date
-        ? 1
-        : -1
-  );
+  const title = readTitle(props, entity) || "sem título";
+
+  const explicitSlug = readRichText(props, entity, "slug", ["Slug", "slug"]);
+
+  let slug = explicitSlug || slugify(title) || page.id;
+
+  // Image
+  const imageCandidates = ["Image", "Imagem", "Photo", "Foto", "Cover", "Capa"];
+  let image =
+    readFiles(props, entity, "image", imageCandidates) ||
+    readUrl(props, entity, "imageUrl", ["Image URL", "Imagem URL", "Photo URL", "Foto URL"]) ||
+    pageCoverUrl(page) || "";
+
+  // Note
+  const note = readRichText(props, entity, "note", [
+    "Note",
+    "Nota",
+    "Caption",
+    "Legenda",
+    "Description",
+    "Descrição",
+  ]);
+
+  // Date
+  const date =
+    readDate(props, entity, "date", [
+      "Date",
+      "Data",
+      "Published Date",
+      "Data de publicação",
+    ]) || page.created_time;
+
+  // Source
+  const rawSource = readSelect(props, entity, "source", ["Source", "Fonte"]);
+  const source =
+    rawSource && rawSource.toLowerCase() === "nicoly"
+      ? "nicoly"
+      : "muac";
+
+  // Tags
+  const tags = readMultiSelect(props, entity, "tags", ["Tags", "Categorias", "Tags/Categorias"]);
+
+  // Featured
+  const featured = readCheckbox(props, entity, "featured", ["Featured", "Destaque", "Destacar"]) ?? false;
+
+  return {
+    id: page.id,
+    slug,
+    title,
+    note,
+    image,
+    date,
+    source,
+    tags,
+    featured,
+  };
+}
+
+async function queryPublishedGallery(): Promise<PageObjectResponse[]> {
+  if (!NOTION_DATABASE_ID || !NOTION_TOKEN) {
+    return [];
+  }
+
+  const dataSourceId = await getDataSourceId();
+
+  const results: PageObjectResponse[] = [];
+
+  let cursor: string | undefined;
+
+  do {
+    const response = await notion().dataSources.query({
+      data_source_id: dataSourceId,
+      ...(cursor ? { start_cursor: cursor } : {}),
+      page_size: 100,
+    });
+
+    for (const result of response.results) {
+      if (isPageObject(result)) {
+        results.push(result);
+      }
+    }
+
+    cursor = response.has_more && response.next_cursor ? response.next_cursor : undefined;
+  } while (cursor);
+
+  if (results.length === 0) {
+    return results;
+  }
+
+  const publishedHit = findProp(results[0].properties, "checkbox", ["Published", "Publicado", "Public"]);
+
+  if (!publishedHit) {
+    return results;
+  }
+
+  return results.filter((page) => {
+    const property = page.properties[publishedHit.name];
+    return property.type === "checkbox" && property.checkbox === true;
+  });
+}
+
+export async function getGallery(): Promise<GalleryEntry[]> {
+  if (!NOTION_DATABASE_ID) {
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("[notion] NOTION_DATABASE_ID não configurado — retornando array vazio");
+    }
+    return [];
+  }
+
+  if (!NOTION_TOKEN) {
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("[notion] NOTION_TOKEN não configurado — retornando array vazio");
+    }
+    return [];
+  }
+
+  try {
+    const pages = await queryPublishedGallery();
+
+    if (pages.length === 0) {
+      if (process.env.NODE_ENV !== "production") {
+        console.warn("[notion] query retornou 0 resultados — getGallery retornará array vazio");
+      }
+      return [];
+    }
+
+    const entries = await Promise.all(
+      pages.map((page, index) => mapPageToGalleryEntry(page, index))
+    );
+
+    const filtered = entries.filter((e) => !!e.image && e.image.trim() !== "");
+
+    filtered.sort((a, b) => (a.date < b.date ? 1 : -1));
+
+    return filtered;
+  } catch (error) {
+    console.warn("[notion] erro ao buscar gallery", error);
+    return [];
+  }
 }

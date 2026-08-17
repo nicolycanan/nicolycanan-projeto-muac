@@ -1,43 +1,44 @@
 import type { Metadata } from "next";
-import Image from "next/image";
-import styles from "./gallery.module.css";
 import { getGallery } from "@/lib/content";
+import styles from "./gallery.module.css";
 
 export const metadata: Metadata = {
   title: "Gallery",
-  description: "Conteúdo audiovisual da MUAC e do canal da Nicoly.",
+  description: "Galeria de imagens da MUAC e do acervo pessoal.",
 };
 
-export default function GalleryPage() {
-  const gallery = getGallery();
+export default async function GalleryPage() {
+  const entries = await getGallery();
 
   return (
-    <>
+    <main className={styles.page}>
       <header className={styles.header}>
-        <h1 className={styles.title}>Gallery</h1>
-        <p className={styles.intro}>
-          Vídeos da MUAC e do canal pessoal da Nicoly, reunidos aqui sem que
-          um apague o outro.
-        </p>
+        <h1>Gallery</h1>
       </header>
 
-      <div className={styles.grid}>
-        {gallery.map((v) => (
-          <article key={v.slug} className={styles.card}>
-            <div className={styles.media}>
-              <Image src={v.cover} alt="" fill sizes="(min-width: 720px) 45vw, 90vw" />
-              <span className={styles.play} aria-hidden="true">
-                ▶ assistir
-              </span>
-            </div>
-            <div className={styles.body}>
-              <span className={styles.source}>{v.source === "muac" ? "MUAC" : "canal da Nicoly"}</span>
-              <h2 className={styles.cardTitle}>{v.title}</h2>
-              <p className={styles.note}>{v.note}</p>
-            </div>
-          </article>
-        ))}
-      </div>
-    </>
+      <section className={styles.gallery}>
+        {entries.length === 0 ? (
+          <div className={styles.empty} aria-live="polite">
+            Ainda não há imagens por aqui.
+          </div>
+        ) : (
+          entries.map((entry) => (
+            <article key={entry.id} className={styles.item}>
+              <div className={styles.imageWrapper}>
+                <img src={entry.image} alt={entry.note || entry.title} />
+              </div>
+
+              <div className={styles.meta}>
+                <h2>{entry.title}</h2>
+
+                {entry.note && <p>{entry.note}</p>}
+
+                {entry.date && <time>{entry.date}</time>}
+              </div>
+            </article>
+          ))
+        )}
+      </section>
+    </main>
   );
 }

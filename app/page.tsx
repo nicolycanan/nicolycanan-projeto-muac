@@ -10,7 +10,8 @@ export default async function Home() {
   const featured: ArchiveEntry | null = archive && archive.length > 0 ? archive[0] : null;
   const others: ArchiveEntry[] = archive && archive.length > 1 ? archive.slice(1) : [];
   const playlist = getCurrentPlaylist();
-  const gallery = getGallery()[0];
+  const galleryEntries = await getGallery();
+  const gallery = galleryEntries && galleryEntries.length > 0 ? galleryEntries[0] : null;
 
   return (
     <>
