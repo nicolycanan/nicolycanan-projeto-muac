@@ -1,4 +1,4 @@
-import { Client, isFullPage } from "@notionhq/client";
+import { Client } from "@notionhq/client";
 import type {
   PageObjectResponse,
   BlockObjectResponse,
@@ -13,15 +13,44 @@ import type {
  *   └── Profiles (Relation)
  *          └── Profile
  *
- * This file is intentionally responsible only for the content/data layer.
- * The UI should consume the exported types and functions below.
+ * IMPORTANT:
+ * Since Notion API 2025-09-03, databases and data sources
+ * are separate concepts.
+ *
+ * NOTION_DATABASE_ID identifies the Notion database.
+ * The actual query is performed against its data source.
+ *
+ * Optionally, NOTION_DATA_SOURCE_ID can be provided to avoid
+ * resolving the data source automatically.
+ *
+ * This file is intentionally responsible only for the
+ * content/data layer.
  */
 
+/* =========================================================================
+   Types
+   ========================================================================= */
+
 export type ArchiveBlock =
-  | { type: "paragraph"; text: string }
-  | { type: "quote"; text: string; attribution?: string }
-  | { type: "image"; src: string; alt: string; caption?: string }
-  | { type: "heading"; text: string }
+  | {
+      type: "paragraph";
+      text: string;
+    }
+  | {
+      type: "quote";
+      text: string;
+      attribution?: string;
+    }
+  | {
+      type: "image";
+      src: string;
+      alt: string;
+      caption?: string;
+    }
+  | {
+      type: "heading";
+      text: string;
+    }
   | {
       type: "list";
       ordered: boolean;
@@ -113,16 +142,26 @@ export type VideoEntry = {
 };
 
 /* =========================================================================
-   Notion client + generic property readers
+   Environment
    ========================================================================= */
 
-const NOTION_TOKEN = process.env.NOTION_TOKEN;
+const NOTION_TOKEN =
+  process.env.NOTION_TOKEN?.trim();
+
 const NOTION_DATABASE_ID =
-  process.env.NOTION_DATABASE_ID;
+  process.env.NOTION_DATABASE_ID?.trim();
+
+const NOTION_DATA_SOURCE_ID =
+  process.env.NOTION_DATA_SOURCE_ID?.trim();
 
 export const NOTION_CONFIGURED = Boolean(
-  NOTION_TOKEN && NOTION_DATABASE_ID
+  NOTION_TOKEN &&
+    NOTION_DATABASE_ID
 );
+
+/* =========================================================================
+   Notion client
+   ========================================================================= */
 
 let client: Client | null = null;
 
@@ -136,20 +175,65 @@ function notion(): Client {
 
     client = new Client({
       auth: NOTION_TOKEN,
+      notionVersion: "2026-03-11",
     });
   }
 
   return client;
 }
 
-type Props = PageObjectResponse["properties"];
+/* =========================================================================
+   Generic types
+   ========================================================================= */
+
+type Props =
+  PageObjectResponse["properties"];
+
+/**
+ * Type guard local.
+ *
+ * We intentionally do NOT use isFullPage() for results returned by
+ * dataSources.query(), because some versions of @notionhq/client
+ * expose response.results as unknown[].
+ */
+function isPageObject(
+  value: unknown
+): value is PageObjectResponse {
+  if (
+    typeof value !== "object" ||
+    value === null
+  ) {
+    return false;
+  }
+
+  const candidate =
+    value as {
+      object?: unknown;
+      id?: unknown;
+      properties?: unknown;
+    };
+
+  return (
+    candidate.object === "page" &&
+    typeof candidate.id === "string" &&
+    typeof candidate.properties === "object" &&
+    candidate.properties !== null
+  );
+}
+
+/* =========================================================================
+   Logging
+   ========================================================================= */
 
 function logMatch(
   entity: string,
   field: string,
   propName: string | null
 ) {
-  if (process.env.NODE_ENV !== "production") {
+  if (
+    process.env.NODE_ENV !==
+    "production"
+  ) {
     if (propName) {
       console.log(
         `[notion] ${entity}.${field} ← propriedade "${propName}"`
@@ -162,10 +246,10 @@ function logMatch(
   }
 }
 
-/**
- * Find a property by exact type, optionally narrowed
- * by a list of likely property names.
- */
+/* =========================================================================
+   Property helpers
+   ========================================================================= */
+
 function findProp(
   props: Props,
   type: string,
@@ -174,16 +258,18 @@ function findProp(
   name: string;
   value: Props[string];
 } | null {
-  const entries = Object.entries(props);
+  const entries =
+    Object.entries(props);
 
   if (candidates) {
     for (const name of candidates) {
-      const hit = entries.find(
-        ([key, value]) =>
-          key.toLowerCase() ===
-            name.toLowerCase() &&
-          value.type === type
-      );
+      const hit =
+        entries.find(
+          ([key, value]) =>
+            key.toLowerCase() ===
+              name.toLowerCase() &&
+            value.type === type
+        );
 
       if (hit) {
         return {
@@ -194,9 +280,11 @@ function findProp(
     }
   }
 
-  const anyOfType = entries.find(
-    ([, value]) => value.type === type
-  );
+  const anyOfType =
+    entries.find(
+      ([, value]) =>
+        value.type === type
+    );
 
   return anyOfType
     ? {
@@ -213,10 +301,15 @@ function richTextToPlain(
       }[]
     | undefined
 ): string {
-  if (!rt) return "";
+  if (!rt) {
+    return "";
+  }
 
   return rt
-    .map((item) => item.plain_text)
+    .map(
+      (item) =>
+        item.plain_text
+    )
     .join("");
 }
 
@@ -228,10 +321,11 @@ function readTitle(
   props: Props,
   entity: string
 ): string {
-  const hit = findProp(
-    props,
-    "title"
-  );
+  const hit =
+    findProp(
+      props,
+      "title"
+    );
 
   logMatch(
     entity,
@@ -241,7 +335,8 @@ function readTitle(
 
   if (
     !hit ||
-    hit.value.type !== "title"
+    hit.value.type !==
+      "title"
   ) {
     return "";
   }
@@ -257,11 +352,12 @@ function readRichText(
   field: string,
   candidates: string[]
 ): string {
-  const hit = findProp(
-    props,
-    "rich_text",
-    candidates
-  );
+  const hit =
+    findProp(
+      props,
+      "rich_text",
+      candidates
+    );
 
   logMatch(
     entity,
@@ -271,7 +367,8 @@ function readRichText(
 
   if (
     !hit ||
-    hit.value.type !== "rich_text"
+    hit.value.type !==
+      "rich_text"
   ) {
     return "";
   }
@@ -287,11 +384,12 @@ function readNumber(
   field: string,
   candidates: string[]
 ): number | null {
-  const hit = findProp(
-    props,
-    "number",
-    candidates
-  );
+  const hit =
+    findProp(
+      props,
+      "number",
+      candidates
+    );
 
   logMatch(
     entity,
@@ -301,7 +399,8 @@ function readNumber(
 
   if (
     !hit ||
-    hit.value.type !== "number"
+    hit.value.type !==
+      "number"
   ) {
     return null;
   }
@@ -315,11 +414,12 @@ function readDate(
   field: string,
   candidates: string[]
 ): string {
-  const hit = findProp(
-    props,
-    "date",
-    candidates
-  );
+  const hit =
+    findProp(
+      props,
+      "date",
+      candidates
+    );
 
   logMatch(
     entity,
@@ -329,7 +429,8 @@ function readDate(
 
   if (
     !hit ||
-    hit.value.type !== "date" ||
+    hit.value.type !==
+      "date" ||
     !hit.value.date
   ) {
     return "";
@@ -344,11 +445,12 @@ function readCheckbox(
   field: string,
   candidates: string[]
 ): boolean | null {
-  const hit = findProp(
-    props,
-    "checkbox",
-    candidates
-  );
+  const hit =
+    findProp(
+      props,
+      "checkbox",
+      candidates
+    );
 
   logMatch(
     entity,
@@ -358,7 +460,8 @@ function readCheckbox(
 
   if (
     !hit ||
-    hit.value.type !== "checkbox"
+    hit.value.type !==
+      "checkbox"
   ) {
     return null;
   }
@@ -372,11 +475,12 @@ function readMultiSelect(
   field: string,
   candidates: string[]
 ): string[] {
-  const hit = findProp(
-    props,
-    "multi_select",
-    candidates
-  );
+  const hit =
+    findProp(
+      props,
+      "multi_select",
+      candidates
+    );
 
   logMatch(
     entity,
@@ -386,13 +490,15 @@ function readMultiSelect(
 
   if (
     !hit ||
-    hit.value.type !== "multi_select"
+    hit.value.type !==
+      "multi_select"
   ) {
     return [];
   }
 
   return hit.value.multi_select.map(
-    (option) => option.name
+    (option) =>
+      option.name
   );
 }
 
@@ -402,11 +508,12 @@ function readRelation(
   field: string,
   candidates: string[]
 ): string[] {
-  const hit = findProp(
-    props,
-    "relation",
-    candidates
-  );
+  const hit =
+    findProp(
+      props,
+      "relation",
+      candidates
+    );
 
   logMatch(
     entity,
@@ -416,13 +523,17 @@ function readRelation(
 
   if (
     !hit ||
-    hit.value.type !== "relation"
+    hit.value.type !==
+      "relation"
   ) {
     return [];
   }
 
   return hit.value.relation
-    .map((relation) => relation.id)
+    .map(
+      (relation) =>
+        relation.id
+    )
     .filter(Boolean);
 }
 
@@ -432,11 +543,12 @@ function readFiles(
   field: string,
   candidates: string[]
 ): string | null {
-  const hit = findProp(
-    props,
-    "files",
-    candidates
-  );
+  const hit =
+    findProp(
+      props,
+      "files",
+      candidates
+    );
 
   logMatch(
     entity,
@@ -446,19 +558,28 @@ function readFiles(
 
   if (
     !hit ||
-    hit.value.type !== "files" ||
-    hit.value.files.length === 0
+    hit.value.type !==
+      "files" ||
+    hit.value.files.length ===
+      0
   ) {
     return null;
   }
 
-  const file = hit.value.files[0];
+  const file =
+    hit.value.files[0];
 
-  if (file.type === "external") {
+  if (
+    file.type ===
+    "external"
+  ) {
     return file.external.url;
   }
 
-  if (file.type === "file") {
+  if (
+    file.type ===
+    "file"
+  ) {
     return file.file.url;
   }
 
@@ -471,11 +592,12 @@ function readUrl(
   field: string,
   candidates: string[]
 ): string | null {
-  const hit = findProp(
-    props,
-    "url",
-    candidates
-  );
+  const hit =
+    findProp(
+      props,
+      "url",
+      candidates
+    );
 
   logMatch(
     entity,
@@ -485,7 +607,8 @@ function readUrl(
 
   if (
     !hit ||
-    hit.value.type !== "url"
+    hit.value.type !==
+      "url"
   ) {
     return null;
   }
@@ -513,22 +636,30 @@ function slugify(
     )
     .replace(
       /(^-|-$)/g,
-      ""
-    );
+      "");
 }
 
 function pageCoverUrl(
   page: PageObjectResponse
 ): string | null {
-  const cover = page.cover;
+  const cover =
+    page.cover;
 
-  if (!cover) return null;
+  if (!cover) {
+    return null;
+  }
 
-  if (cover.type === "external") {
+  if (
+    cover.type ===
+    "external"
+  ) {
     return cover.external.url;
   }
 
-  if (cover.type === "file") {
+  if (
+    cover.type ===
+    "file"
+  ) {
     return cover.file.url;
   }
 
@@ -536,16 +667,90 @@ function pageCoverUrl(
 }
 
 /* =========================================================================
+   Notion Data Source resolver
+   ========================================================================= */
+
+let resolvedDataSourceId:
+  | string
+  | null = null;
+
+async function getDataSourceId(): Promise<string> {
+  if (
+    NOTION_DATA_SOURCE_ID
+  ) {
+    return NOTION_DATA_SOURCE_ID;
+  }
+
+  if (
+    resolvedDataSourceId
+  ) {
+    return resolvedDataSourceId;
+  }
+
+  if (
+    !NOTION_DATABASE_ID
+  ) {
+    throw new Error(
+      "NOTION_DATABASE_ID não está definido."
+    );
+  }
+
+  const database =
+    await notion().databases.retrieve(
+      {
+        database_id:
+          NOTION_DATABASE_ID,
+      }
+    );
+
+  /**
+   * The SDK typings can differ between versions,
+   * so we intentionally narrow the response.
+   */
+  const databaseWithSources =
+    database as typeof database & {
+      data_sources?: Array<{
+        id: string;
+        name?: string;
+      }>;
+    };
+
+  const sources =
+    databaseWithSources.data_sources ??
+    [];
+
+  if (
+    sources.length ===
+    0
+  ) {
+    throw new Error(
+      [
+        "Nenhum Data Source foi encontrado dentro do database do Notion.",
+        `Database ID: ${NOTION_DATABASE_ID}`,
+        "Verifique se a integração tem acesso ao database.",
+      ].join(" ")
+    );
+  }
+
+  resolvedDataSourceId =
+    sources[0].id;
+
+  if (
+    process.env.NODE_ENV !==
+    "production"
+  ) {
+    console.log(
+      `[notion] Data Source resolvido automaticamente: ${resolvedDataSourceId}`
+    );
+  }
+
+  return resolvedDataSourceId;
+}
+
+/* =========================================================================
    Profile resolver
    ========================================================================= */
 
-/**
- * In-memory cache.
- *
- * This prevents multiple Archive entries referencing the same
- * person from causing repeated Notion requests during the same
- * server process.
- */
 const profileCache =
   new Map<string, Profile>();
 
@@ -559,14 +764,18 @@ async function getProfileById(
   profileId: string
 ): Promise<Profile | null> {
   const cached =
-    profileCache.get(profileId);
+    profileCache.get(
+      profileId
+    );
 
   if (cached) {
     return cached;
   }
 
   const pending =
-    profileRequestCache.get(profileId);
+    profileRequestCache.get(
+      profileId
+    );
 
   if (pending) {
     return pending;
@@ -576,11 +785,16 @@ async function getProfileById(
     (async (): Promise<Profile | null> => {
       try {
         const page =
-          await notion().pages.retrieve({
-            page_id: profileId,
-          });
+          await notion().pages.retrieve(
+            {
+              page_id:
+                profileId,
+            }
+          );
 
-        if (!isFullPage(page)) {
+        if (
+          !isPageObject(page)
+        ) {
           return null;
         }
 
@@ -682,16 +896,17 @@ async function getProfileById(
             ]
           );
 
-        const profile: Profile = {
-          id: page.id,
-          name,
-          slug,
-          bio,
-          avatar,
-          role,
-          instagram,
-          website,
-        };
+        const profile: Profile =
+          {
+            id: page.id,
+            name,
+            slug,
+            bio,
+            avatar,
+            role,
+            instagram,
+            website,
+          };
 
         profileCache.set(
           profileId,
@@ -725,7 +940,8 @@ async function resolveProfileReferences(
   profileIds: string[]
 ): Promise<ProfileReference[]> {
   if (
-    profileIds.length === 0
+    profileIds.length ===
+    0
   ) {
     return [];
   }
@@ -736,8 +952,11 @@ async function resolveProfileReferences(
 
   const profiles =
     await Promise.all(
-      uniqueIds.map((id) =>
-        getProfileById(id)
+      uniqueIds.map(
+        (id) =>
+          getProfileById(
+            id
+          )
       )
     );
 
@@ -748,15 +967,17 @@ async function resolveProfileReferences(
       ): profile is Profile =>
         profile !== null
     )
-    .map((profile) => ({
-      id: profile.id,
-      name: profile.name,
-      slug: profile.slug,
-    }));
+    .map(
+      (profile) => ({
+        id: profile.id,
+        name: profile.name,
+        slug: profile.slug,
+      })
+    );
 }
 
 /* =========================================================================
-   Archive → Notion page mapping
+   Archive → Notion mapping
    ========================================================================= */
 
 async function mapPageToEntry(
@@ -858,7 +1079,9 @@ async function mapPageToEntry(
         "Imagem URL",
       ]
     ) ||
-    pageCoverUrl(page) ||
+    pageCoverUrl(
+      page
+    ) ||
     "/images/carpa.png";
 
   const tags =
@@ -923,11 +1146,15 @@ async function mapPageToEntry(
 
     number:
       number !== null
-        ? String(number).padStart(
+        ? String(
+            number
+          ).padStart(
             3,
             "0"
           )
-        : String(index + 1).padStart(
+        : String(
+            index + 1
+          ).padStart(
             3,
             "0"
           ),
@@ -969,26 +1196,31 @@ function richTextArrayToPlain(
 function mapBlocks(
   blocks: BlockObjectResponse[]
 ): ArchiveBlock[] {
-  const out: ArchiveBlock[] = [];
+  const out: ArchiveBlock[] =
+    [];
 
-  let pendingList: {
-    ordered: boolean;
-    items: string[];
-  } | null = null;
+  let pendingList:
+    | {
+        ordered: boolean;
+        items: string[];
+      }
+    | null = null;
 
-  const flushList = () => {
-    if (
-      pendingList &&
-      pendingList.items.length > 0
-    ) {
-      out.push({
-        type: "list",
-        ...pendingList,
-      });
-    }
+  const flushList =
+    () => {
+      if (
+        pendingList &&
+        pendingList.items
+          .length > 0
+      ) {
+        out.push({
+          type: "list",
+          ...pendingList,
+        });
+      }
 
-    pendingList = null;
-  };
+      pendingList = null;
+    };
 
   for (const block of blocks) {
     if (
@@ -1003,7 +1235,9 @@ function mapBlocks(
 
       flushList();
 
-      if (text.trim()) {
+      if (
+        text.trim()
+      ) {
         out.push({
           type: "paragraph",
           text,
@@ -1039,7 +1273,8 @@ function mapBlocks(
           ),
       });
     } else if (
-      block.type === "quote"
+      block.type ===
+      "quote"
     ) {
       flushList();
 
@@ -1047,11 +1282,13 @@ function mapBlocks(
         type: "quote",
         text:
           richTextArrayToPlain(
-            block.quote.rich_text
+            block.quote
+              .rich_text
           ),
       });
     } else if (
-      block.type === "image"
+      block.type ===
+      "image"
     ) {
       flushList();
 
@@ -1072,9 +1309,11 @@ function mapBlocks(
       out.push({
         type: "image",
         src: url,
-        alt: caption || "",
+        alt:
+          caption || "",
         caption:
-          caption || undefined,
+          caption ||
+          undefined,
       });
     } else if (
       block.type ===
@@ -1152,22 +1391,30 @@ async function getAllBlocks(
     const response =
       await notion()
         .blocks.children.list({
-          block_id: pageId,
-          start_cursor: cursor,
+          block_id:
+            pageId,
+          start_cursor:
+            cursor,
           page_size: 100,
         });
 
-    blocks.push(
-      ...(response.results.filter(
-        (result) =>
-          "type" in result
-      ) as BlockObjectResponse[])
-    );
+    for (const result of response.results) {
+      if (
+        typeof result ===
+          "object" &&
+        result !== null &&
+        "type" in result
+      ) {
+        blocks.push(
+          result as BlockObjectResponse
+        );
+      }
+    }
 
     cursor =
-      response.has_more
-        ? response.next_cursor ??
-          undefined
+      response.has_more &&
+      response.next_cursor
+        ? response.next_cursor
         : undefined;
   } while (cursor);
 
@@ -1178,15 +1425,19 @@ async function getAllBlocks(
    Published Archive query
    ========================================================================= */
 
-/**
- * Best-effort "Published" filter.
- *
- * If no checkbox property exists at all,
- * everything is treated as published.
- */
 async function queryPublishedArchive(): Promise<
   PageObjectResponse[]
 > {
+  if (
+    !NOTION_DATABASE_ID ||
+    !NOTION_TOKEN
+  ) {
+    return [];
+  }
+
+  const dataSourceId =
+    await getDataSourceId();
+
   const results: PageObjectResponse[] =
     [];
 
@@ -1196,33 +1447,65 @@ async function queryPublishedArchive(): Promise<
 
   do {
     const response =
-      await notion()
-        .databases.query({
-          database_id:
-            NOTION_DATABASE_ID!,
-          start_cursor: cursor,
-          page_size: 100,
-        });
+      await notion().dataSources.query(
+        {
+          data_source_id:
+            dataSourceId,
 
-    results.push(
-      ...(response.results.filter(
-        isFullPage
-      ) as PageObjectResponse[])
-    );
+          ...(cursor
+            ? {
+                start_cursor:
+                  cursor,
+              }
+            : {}),
+
+          page_size: 100,
+        }
+      );
+
+    /**
+     * IMPORTANT:
+     *
+     * Do not use:
+     *
+     * response.results.filter(isFullPage)
+     *
+     * because some versions of the SDK type
+     * response.results as unknown[].
+     *
+     * Instead we validate each result locally.
+     */
+    for (const result of response.results) {
+      if (
+        isPageObject(result)
+      ) {
+        results.push(result);
+      }
+    }
 
     cursor =
-      response.has_more
-        ? response.next_cursor ??
-          undefined
+      response.has_more &&
+      response.next_cursor
+        ? response.next_cursor
         : undefined;
   } while (cursor);
 
   if (
-    results.length === 0
+    results.length ===
+    0
   ) {
     return results;
   }
 
+  /*
+   * Published / Publicado / Public
+   *
+   * If the database has one of these properties
+   * as a checkbox, only checked pages are shown.
+   *
+   * If no such property exists, every page is
+   * considered published.
+   */
   const publishedHit =
     findProp(
       results[0].properties,
@@ -1262,13 +1545,28 @@ async function queryPublishedArchive(): Promise<
 export async function getArchive(): Promise<
   ArchiveEntry[]
 > {
-  if (!NOTION_DATABASE_ID) {
+  if (
+    !NOTION_DATABASE_ID
+  ) {
     if (
       process.env.NODE_ENV !==
       "production"
     ) {
       console.warn(
-        "[notion] NOTION_DATABASE_ID not set — returning empty array"
+        "[notion] NOTION_DATABASE_ID não configurado — retornando array vazio"
+      );
+    }
+
+    return [];
+  }
+
+  if (!NOTION_TOKEN) {
+    if (
+      process.env.NODE_ENV !==
+      "production"
+    ) {
+      console.warn(
+        "[notion] NOTION_TOKEN não configurado — retornando array vazio"
       );
     }
 
@@ -1280,14 +1578,15 @@ export async function getArchive(): Promise<
       await queryPublishedArchive();
 
     if (
-      pages.length === 0
+      pages.length ===
+      0
     ) {
       if (
         process.env.NODE_ENV !==
         "production"
       ) {
         console.warn(
-          "[notion] query returned 0 results — getArchive will return empty array"
+          "[notion] query retornou 0 resultados — getArchive retornará array vazio"
         );
       }
 
@@ -1297,7 +1596,10 @@ export async function getArchive(): Promise<
     const entries =
       await Promise.all(
         pages.map(
-          (page, index) =>
+          (
+            page,
+            index
+          ) =>
             mapPageToEntry(
               page,
               index
@@ -1315,7 +1617,7 @@ export async function getArchive(): Promise<
     return entries;
   } catch (error) {
     console.warn(
-      "[notion] error fetching archive — getArchive will return empty array",
+      "[notion] erro ao buscar archive",
       error
     );
 
@@ -1323,10 +1625,17 @@ export async function getArchive(): Promise<
   }
 }
 
+/* =========================================================================
+   Single Archive entry
+   ========================================================================= */
+
 export async function getArchiveEntry(
   slug: string
 ): Promise<ArchiveEntry | null> {
-  if (!NOTION_DATABASE_ID) {
+  if (
+    !NOTION_DATABASE_ID ||
+    !NOTION_TOKEN
+  ) {
     return null;
   }
 
@@ -1357,10 +1666,15 @@ export async function getArchiveEntry(
         );
 
       if (
-        entry.slug === slug
+        entry.slug ===
+        slug
       ) {
-        matchedEntry = entry;
-        matchedPage = page;
+        matchedEntry =
+          entry;
+
+        matchedPage =
+          page;
+
         break;
       }
     }
@@ -1379,17 +1693,24 @@ export async function getArchiveEntry(
 
     return {
       ...matchedEntry,
-      body: mapBlocks(blocks),
+      body:
+        mapBlocks(
+          blocks
+        ),
     };
   } catch (error) {
     console.warn(
-      `[notion] error fetching archive entry "${slug}"`,
+      `[notion] erro ao buscar archive entry "${slug}"`,
       error
     );
 
     return null;
   }
 }
+
+/* =========================================================================
+   Featured entry
+   ========================================================================= */
 
 export async function getFeaturedEntry(): Promise<
   ArchiveEntry | null
@@ -1398,8 +1719,8 @@ export async function getFeaturedEntry(): Promise<
     await getArchive();
 
   if (
-    !all ||
-    all.length === 0
+    all.length ===
+    0
   ) {
     return null;
   }
@@ -1408,19 +1729,15 @@ export async function getFeaturedEntry(): Promise<
     all.find(
       (entry) =>
         entry.featured
-    ) ?? all[0]
+    ) ??
+    all[0]
   );
 }
 
 /* =========================================================================
-   Public Profile API
+   Profiles API
    ========================================================================= */
 
-/**
- * Returns all profiles referenced by the Archive.
- *
- * This is useful later for /people.
- */
 export async function getProfiles(): Promise<
   Profile[]
 > {
@@ -1441,8 +1758,11 @@ export async function getProfiles(): Promise<
 
   const profiles =
     await Promise.all(
-      profileIds.map((id) =>
-        getProfileById(id)
+      profileIds.map(
+        (id) =>
+          getProfileById(
+            id
+          )
       )
     );
 
@@ -1453,20 +1773,15 @@ export async function getProfiles(): Promise<
       ): profile is Profile =>
         profile !== null
     )
-    .sort((a, b) =>
-      a.name.localeCompare(
-        b.name,
-        "pt-BR"
-      )
+    .sort(
+      (a, b) =>
+        a.name.localeCompare(
+          b.name,
+          "pt-BR"
+        )
     );
 }
 
-/**
- * Returns a profile by its public slug.
- *
- * Example:
- * /people/rafa
- */
 export async function getProfileBySlug(
   slug: string
 ): Promise<Profile | null> {
@@ -1476,18 +1791,12 @@ export async function getProfileBySlug(
   return (
     profiles.find(
       (profile) =>
-        profile.slug === slug
+        profile.slug ===
+        slug
     ) ?? null
   );
 }
 
-/**
- * Returns all Archive entries in which
- * a specific profile appears.
- *
- * This is the foundation for the
- * future "people feed".
- */
 export async function getProfileEntries(
   profileSlug: string
 ): Promise<ArchiveEntry[]> {
@@ -1518,29 +1827,28 @@ const staticPlaylists: Playlist[] =
         "eu quando tenho muito amor pra dar — atualizada sem aviso.",
       cover:
         "/images/carpa.png",
-      date: "2026-08-10",
+      date:
+        "2026-08-10",
       current: true,
-
       spotifyId:
         "6lzMbGKQaG1ElowNWfHz5w",
-
       tracks: [],
     },
 
     {
-      slug: "playlist-002",
+      slug:
+        "playlist-002",
       title:
         "o que se passsa na minha cabeça",
       note:
         "uma curadoria de tudo que (in)felizmente sou...",
       cover:
         "/images/carpa.png",
-      date: "2026-08-16",
+      date:
+        "2026-08-16",
       current: false,
-
       spotifyId:
         "5wiqiU6OjWk9wd3FjeEJOH",
-
       tracks: [],
     },
   ];
@@ -1566,20 +1874,25 @@ export function getCurrentPlaylist(): Playlist {
 const staticVideos: VideoEntry[] =
   [
     {
-      slug: "video-001",
+      slug:
+        "video-001",
       title:
         "vídeo placeholder — experimento 01",
       note:
         "espaço reservado para o primeiro vídeo publicado pela MUAC.",
       cover:
         "/images/carpa.png",
-      date: "2026-07-01",
-      source: "muac",
+      date:
+        "2026-07-01",
+      source:
+        "muac",
     },
   ];
 
 export function getVideos(): VideoEntry[] {
-  return [...staticVideos].sort(
+  return [
+    ...staticVideos,
+  ].sort(
     (a, b) =>
       a.date < b.date
         ? 1
