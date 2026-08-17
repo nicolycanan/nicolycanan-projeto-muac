@@ -9,10 +9,10 @@
 
 A ideia foi transformar esse arquivo pessoal em uma experiência digital que não parecesse apenas um portfólio ou um blog.
 
-** - Archive** para aquilo que merece ser guardado.  
-**Radio** para aquilo que pode ser ouvido.  
-**Gallery** para aquilo que pode ser visto.  
-**About** para aquilo que ajuda a entender quem está por trás do arquivo.
+- **Archive** para aquilo que merece ser guardado.  
+- **Radio** para aquilo que pode ser ouvido.  
+- **Gallery** para aquilo que pode ser visto.  
+- **About** para aquilo que ajuda a entender quem está por trás do arquivo.
 
 ---
 
