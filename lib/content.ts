@@ -1513,9 +1513,9 @@ const staticPlaylists: Playlist[] =
     {
       slug: "atual",
       title:
-        "playlists escolhidas com carinho",
+        "playlists autoexplicativa",
       note:
-        "o que está passando na minha cabeça — atualizada sem aviso.",
+        "eu quando tenho muito amor pra dar — atualizada sem aviso.",
       cover:
         "/images/carpa.png",
       date: "2026-08-10",
@@ -1530,9 +1530,9 @@ const staticPlaylists: Playlist[] =
     {
       slug: "playlist-002",
       title:
-        "segunda seleção",
+        "o que se passsa na minha cabeça",
       note:
-        "uma outra seleção para ouvir sem pressa.",
+        "uma curadoria de tudo que (in)felizmente sou...",
       cover:
         "/images/carpa.png",
       date: "2026-08-16",

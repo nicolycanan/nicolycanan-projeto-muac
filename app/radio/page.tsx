@@ -18,8 +18,9 @@ export default function RadioPage() {
         </h1>
 
         <p className={styles.intro}>
-          Não é um player embutido. É a curadoria da MUAC — atualizada sem
-          aviso, guardada como registro depois que passa.
+          Curadoria de todos as musicas que fazem parte disso
+           — atualizada sem aviso, guardada como um dos registros
+           mais especiais do acervo.
         </p>
       </header>
 
