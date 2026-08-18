@@ -211,18 +211,18 @@ export default async function ArchiveEntryPage({
                 key={i}
                 className={styles.blockImage}
               >
-<Image
-  src={block.src}
-  alt={block.alt || ""}
-  width={1200}
-  height={800}
-  sizes="(max-width: 768px) 100vw, 900px"
-  style={{
-    width: "100%",
-    height: "auto",
-  }}
-  loading={i === 0 ? "eager" : "lazy"}
-/>
+                <Image
+                  src={block.src}
+                  alt={block.alt || ""}
+                  width={1200}
+                  height={800}
+                  sizes="(max-width: 768px) 100vw, 900px"
+                  style={{
+                    width: "100%",
+                    height: "auto",
+                  }}
+                  loading={i === 0 ? "eager" : "lazy"}
+                />
 
                 {block.caption && (
                   <figcaption
