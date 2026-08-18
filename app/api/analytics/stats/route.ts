@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 type AnalyticsRow = {
   path: string;
@@ -32,9 +33,9 @@ type RecentEventRow = {
 
 export async function GET() {
   try {
-    const { env } = await import("cloudflare:workers");
+const { env } = getCloudflareContext();
 
-    const db = env.muac_analytics;
+const db = env.muac_analytics;
 
     const totalResult = await db
       .prepare(

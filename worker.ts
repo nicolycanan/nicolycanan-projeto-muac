@@ -193,9 +193,9 @@ export default {
               if (constantTimeCompare(expectedSig, sig)) {
                 // Authenticated — delegate to OpenNext handler
                 try {
-                  // Delegar exclusivamente ao worker gerado pelo OpenNext
-
-                  const openNextMod = await import("./.open-next/worker.js"); const openNextAny = openNextMod as any;
+                  // @ts-ignore .open-next/worker.js é gerado pelo OpenNext durante o build
+                  const openNextMod = await import("./.open-next/worker.js");
+                  const openNextAny = openNextMod as any;
                   if (openNextAny && openNextAny.default && typeof openNextAny.default.fetch === 'function') {
                     return await openNextAny.default.fetch(request, env, ctx);
                   }
