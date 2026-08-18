@@ -1,0 +1,133 @@
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.eyebrow {
+  color: var(--ink-faint);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: var(--fs-label);
+  font-family: var(--font-ui);
+}
+
+.header h1 {
+  margin-top: 0.2rem;
+  font-size: clamp(2.3rem, 5vw, 3.5rem);
+  line-height: 1;
+}
+
+.sub {
+  margin-top: 0.75rem;
+  color: var(--ink-dim);
+}
+
+.button {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--ink);
+  padding: 0.7rem 1rem;
+  font-family: var(--font-ui);
+  cursor: pointer;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.panel {
+  background: rgba(19, 19, 19, 0.88);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.panelHeader {
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-faint);
+  font-family: var(--font-ui);
+  font-size: var(--fs-small);
+}
+
+.tableWrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  min-width: 900px;
+  border-collapse: collapse;
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+}
+
+.table th {
+  text-align: left;
+  padding: 0.8rem 1rem;
+  color: var(--ink-faint);
+  font-weight: 500;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+
+.table td {
+  padding: 0.8rem 1rem;
+  color: var(--ink-dim);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  vertical-align: top;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.date {
+  white-space: nowrap;
+}
+
+.mono {
+  font-family: monospace;
+  color: var(--ink);
+}
+
+.event {
+  display: inline-flex;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.state,
+.error {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(19, 19, 19, 0.88);
+  padding: 1rem 1.1rem;
+  color: var(--ink-dim);
+}
+
+.error {
+  color: #ffb7b7;
+  border-color: rgba(255, 87, 87, 0.35);
+  background: rgba(255, 87, 87, 0.06);
+}
+
+@media (max-width: 640px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
