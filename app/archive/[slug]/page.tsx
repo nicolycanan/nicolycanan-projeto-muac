@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
@@ -156,9 +157,63 @@ export default async function ArchiveEntryPage({
                 key={i}
                 className={styles.paragraph}
               >
-                {block.text}
+                {block.richText.map(
+                  (item, j) => {
+                    let content: React.ReactNode =
+                      item.text;
+
+                    if (item.bold) {
+                      content = (
+                        <strong>{content}</strong>
+                      );
+                    }
+
+                    if (item.italic) {
+                      content = (
+                        <em>{content}</em>
+                      );
+                    }
+
+                    if (item.underline) {
+                      content = (
+                        <u>{content}</u>
+                      );
+                    }
+
+                    if (item.strikethrough) {
+                      content = (
+                        <s>{content}</s>
+                      );
+                    }
+
+                    if (item.code) {
+                      content = (
+                        <code>{content}</code>
+                      );
+                    }
+
+                    if (item.href) {
+                      content = (
+                        <a
+                          href={item.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {content}
+                        </a>
+                      );
+                    }
+
+                    return (
+                      <span key={j}>
+                        {content}
+                      </span>
+                    );
+                  }
+                )}
               </p>
             );
+
           }
 
           if (block.type === "heading") {

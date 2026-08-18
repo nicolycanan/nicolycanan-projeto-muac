@@ -32,32 +32,42 @@ import { imageSize } from "image-size";
    Types
    ========================================================================= */
 
+export type ArchiveRichText = {
+  text: string;
+  bold?: boolean;
+  italic?: boolean;
+  underline?: boolean;
+  strikethrough?: boolean;
+  code?: boolean;
+  href?: string | null;
+};
+
 export type ArchiveBlock =
   | {
-      type: "paragraph";
-      text: string;
-    }
+    type: "paragraph";
+    richText: ArchiveRichText[];
+  }
   | {
-      type: "quote";
-      text: string;
-      attribution?: string;
-    }
+    type: "quote";
+    text: string;
+    attribution?: string;
+  }
   | {
-  type: "image";
-  src: string;
-  alt: string;
-  caption?: string;
-  width?: number;
-    }
+    type: "image";
+    src: string;
+    alt: string;
+    caption?: string;
+    width?: number;
+  }
   | {
-      type: "heading";
-      text: string;
-    }
+    type: "heading";
+    text: string;
+  }
   | {
-      type: "list";
-      ordered: boolean;
-      items: string[];
-    };
+    type: "list";
+    ordered: boolean;
+    items: string[];
+  };
 
 /* =========================================================================
    Profiles
@@ -167,7 +177,7 @@ const NOTION_GALLERY_DATA_SOURCE_ID =
 
 export const NOTION_CONFIGURED = Boolean(
   NOTION_TOKEN &&
-    NOTION_DATABASE_ID
+  NOTION_DATABASE_ID
 );
 
 /* =========================================================================
@@ -278,7 +288,7 @@ function findProp(
         entries.find(
           ([key, value]) =>
             key.toLowerCase() ===
-              name.toLowerCase() &&
+            name.toLowerCase() &&
             value.type === type
         );
 
@@ -299,17 +309,17 @@ function findProp(
 
   return anyOfType
     ? {
-        name: anyOfType[0],
-        value: anyOfType[1],
-      }
+      name: anyOfType[0],
+      value: anyOfType[1],
+    }
     : null;
 }
 
 function richTextToPlain(
   rt:
     | {
-        plain_text: string;
-      }[]
+      plain_text: string;
+    }[]
     | undefined
 ): string {
   if (!rt) {
@@ -347,7 +357,7 @@ function readTitle(
   if (
     !hit ||
     hit.value.type !==
-      "title"
+    "title"
   ) {
     return "";
   }
@@ -379,7 +389,7 @@ function readRichText(
   if (
     !hit ||
     hit.value.type !==
-      "rich_text"
+    "rich_text"
   ) {
     return "";
   }
@@ -411,7 +421,7 @@ function readNumber(
   if (
     !hit ||
     hit.value.type !==
-      "number"
+    "number"
   ) {
     return null;
   }
@@ -441,7 +451,7 @@ function readDate(
   if (
     !hit ||
     hit.value.type !==
-      "date" ||
+    "date" ||
     !hit.value.date
   ) {
     return "";
@@ -472,7 +482,7 @@ function readCheckbox(
   if (
     !hit ||
     hit.value.type !==
-      "checkbox"
+    "checkbox"
   ) {
     return null;
   }
@@ -502,7 +512,7 @@ function readSelect(
   if (
     !hit ||
     hit.value.type !==
-      "select" ||
+    "select" ||
     !hit.value.select
   ) {
     return null;
@@ -533,7 +543,7 @@ function readMultiSelect(
   if (
     !hit ||
     hit.value.type !==
-      "multi_select"
+    "multi_select"
   ) {
     return [];
   }
@@ -566,7 +576,7 @@ function readRelation(
   if (
     !hit ||
     hit.value.type !==
-      "relation"
+    "relation"
   ) {
     return [];
   }
@@ -644,9 +654,9 @@ function readFiles(
   if (
     !hit ||
     hit.value.type !==
-      "files" ||
+    "files" ||
     hit.value.files.length ===
-      0
+    0
   ) {
     return null;
   }
@@ -693,7 +703,7 @@ function readUrl(
   if (
     !hit ||
     hit.value.type !==
-      "url"
+    "url"
   ) {
     return null;
   }
@@ -1082,16 +1092,16 @@ async function getProfileById(
           );
 
         const profile: Profile =
-          {
-            id: page.id,
-            name,
-            slug,
-            bio,
-            avatar,
-            role,
-            instagram,
-            website,
-          };
+        {
+          id: page.id,
+          name,
+          slug,
+          bio,
+          avatar,
+          role,
+          instagram,
+          website,
+        };
 
         profileCache.set(
           profileId,
@@ -1359,17 +1369,17 @@ async function mapPageToEntry(
     number:
       number !== null
         ? String(
-            number
-          ).padStart(
-            3,
-            "0"
-          )
+          number
+        ).padStart(
+          3,
+          "0"
+        )
         : String(
-            index + 1
-          ).padStart(
-            3,
-            "0"
-          ),
+          index + 1
+        ).padStart(
+          3,
+          "0"
+        ),
 
     title,
     subject,
@@ -1391,18 +1401,54 @@ async function mapPageToEntry(
 function richTextArrayToPlain(
   rt:
     | {
-        plain_text: string;
-      }[]
+      plain_text: string;
+    }[]
     | undefined
 ): string {
   return rt
     ? rt
-        .map(
-          (item) =>
-            item.plain_text
-        )
-        .join("")
+      .map(
+        (item) =>
+          item.plain_text
+      )
+      .join("")
     : "";
+}
+
+function richTextArrayToRichText(
+  rt:
+    | {
+        plain_text: string;
+        annotations?: {
+          bold?: boolean;
+          italic?: boolean;
+          underline?: boolean;
+          strikethrough?: boolean;
+          code?: boolean;
+        };
+        href?: string | null;
+      }[]
+    | undefined
+): ArchiveRichText[] {
+  if (!rt) {
+    return [];
+  }
+
+  return rt.map((item) => ({
+    text: item.plain_text,
+    bold:
+      item.annotations?.bold ?? false,
+    italic:
+      item.annotations?.italic ?? false,
+    underline:
+      item.annotations?.underline ?? false,
+    strikethrough:
+      item.annotations?.strikethrough ?? false,
+    code:
+      item.annotations?.code ?? false,
+    href:
+      item.href ?? null,
+  }));
 }
 
 /**
@@ -1419,9 +1465,9 @@ async function mapBlocks(
 
   let pendingList:
     | {
-        ordered: boolean;
-        items: string[];
-      }
+      ordered: boolean;
+      items: string[];
+    }
     | null = null;
 
   const flushList =
@@ -1441,46 +1487,43 @@ async function mapBlocks(
     };
 
   for (const block of blocks) {
-    if (
-      block.type ===
-      "paragraph"
-    ) {
-      const text =
-        richTextArrayToPlain(
-          block.paragraph
-            .rich_text
+    if (block.type === "paragraph") {
+      const richText =
+        richTextArrayToRichText(
+          block.paragraph.rich_text
         );
 
       flushList();
 
-      if (
-        text.trim()
-      ) {
+      if (richText.length > 0) {
         out.push({
           type: "paragraph",
-          text,
+          richText,
         });
       }
+
+
+
     } else if (
       block.type ===
-        "heading_1" ||
+      "heading_1" ||
       block.type ===
-        "heading_2" ||
+      "heading_2" ||
       block.type ===
-        "heading_3"
+      "heading_3"
     ) {
       flushList();
 
       const richText =
         block.type ===
-        "heading_1"
+          "heading_1"
           ? block.heading_1
-              .rich_text
+            .rich_text
           : block.type ===
             "heading_2"
-          ? block.heading_2
+            ? block.heading_2
               .rich_text
-          : block.heading_3
+            : block.heading_3
               .rich_text;
 
       out.push({
@@ -1505,48 +1548,48 @@ async function mapBlocks(
           ),
       });
     } else if (
-  block.type === "image"
-) {
-  flushList();
+      block.type === "image"
+    ) {
+      flushList();
 
-  const image =
-    block.image;
+      const image =
+        block.image;
 
-  const url =
-    image.type === "external"
-      ? image.external.url
-      : image.file.url;
+      const url =
+        image.type === "external"
+          ? image.external.url
+          : image.file.url;
 
-  const caption =
-    richTextArrayToPlain(
-      image.caption
-    );
+      const caption =
+        richTextArrayToPlain(
+          image.caption
+        );
 
-  /**
-   * Notion pode informar a largura original/configurada
-   * da imagem através do objeto do bloco.
-   *
-   * Mantemos a informação disponível para o frontend,
-   * mas não dependemos dela para renderizar.
-   */
-  const imageWithDimensions =
-    image as typeof image & {
-      width?: number;
-    };
+      /**
+       * Notion pode informar a largura original/configurada
+       * da imagem através do objeto do bloco.
+       *
+       * Mantemos a informação disponível para o frontend,
+       * mas não dependemos dela para renderizar.
+       */
+      const imageWithDimensions =
+        image as typeof image & {
+          width?: number;
+        };
 
-  const width =
-    typeof imageWithDimensions.width === "number"
-      ? imageWithDimensions.width
-      : undefined;
+      const width =
+        typeof imageWithDimensions.width === "number"
+          ? imageWithDimensions.width
+          : undefined;
 
-  out.push({
-    type: "image",
-    src: url,
-    alt: caption || "",
-    caption:
-      caption || undefined,
-    width,
-  });
+      out.push({
+        type: "image",
+        src: url,
+        alt: caption || "",
+        caption:
+          caption || undefined,
+        width,
+      });
 
     } else if (
       block.type ===
@@ -1634,7 +1677,7 @@ async function getAllBlocks(
     for (const result of response.results) {
       if (
         typeof result ===
-          "object" &&
+        "object" &&
         result !== null &&
         "type" in result
       ) {
@@ -1646,7 +1689,7 @@ async function getAllBlocks(
 
     cursor =
       response.has_more &&
-      response.next_cursor
+        response.next_cursor
         ? response.next_cursor
         : undefined;
   } while (cursor);
@@ -1690,9 +1733,9 @@ async function queryPublishedArchive(): Promise<
 
           ...(cursor
             ? {
-                start_cursor:
-                  cursor,
-              }
+              start_cursor:
+                cursor,
+            }
             : {}),
 
           page_size: 100,
@@ -1709,7 +1752,7 @@ async function queryPublishedArchive(): Promise<
 
     cursor =
       response.has_more &&
-      response.next_cursor
+        response.next_cursor
         ? response.next_cursor
         : undefined;
   } while (cursor);
@@ -1749,14 +1792,14 @@ async function queryPublishedArchive(): Promise<
     (page) => {
       const property =
         page.properties[
-          publishedHit.name
+        publishedHit.name
         ];
 
       return (
         property.type ===
-          "checkbox" &&
+        "checkbox" &&
         property.checkbox ===
-          true
+        true
       );
     }
   );
@@ -2206,8 +2249,8 @@ async function mapPageToGalleryEntry(
 
   const source =
     rawSource &&
-    rawSource
-      .toLowerCase() ===
+      rawSource
+        .toLowerCase() ===
       "nicoly"
       ? "nicoly"
       : "muac";
@@ -2287,9 +2330,9 @@ async function queryPublishedGallery(): Promise<
               dataSourceId,
             ...(cursor
               ? {
-                  start_cursor:
-                    cursor,
-                }
+                start_cursor:
+                  cursor,
+              }
               : {}),
             page_size: 100,
           }
@@ -2309,7 +2352,7 @@ async function queryPublishedGallery(): Promise<
 
       cursor =
         response.has_more &&
-        response.next_cursor
+          response.next_cursor
           ? response.next_cursor
           : undefined;
     } while (cursor);
@@ -2340,14 +2383,14 @@ async function queryPublishedGallery(): Promise<
       (page) => {
         const property =
           page.properties[
-            publishedHit.name
+          publishedHit.name
           ];
 
         return (
           property.type ===
-            "checkbox" &&
+          "checkbox" &&
           property.checkbox ===
-            true
+          true
         );
       }
     );
@@ -2431,7 +2474,7 @@ export async function getGallery(): Promise<
         (entry) =>
           !!entry.image &&
           entry.image.trim() !==
-            ""
+          ""
       );
 
     filtered.sort(
