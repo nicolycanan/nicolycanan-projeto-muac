@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "main": ".open-next/worker.js",
+  "main": "worker.ts",
   "name": "muac",
   "compatibility_date": "2026-08-17",
   "compatibility_flags": [
