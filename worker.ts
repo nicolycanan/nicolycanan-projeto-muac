@@ -10,7 +10,7 @@ export default {
     const hostHeader = (request.headers.get('host') || '').split(':')[0].toLowerCase();
 
     // Allowed hosts: current production hostname plus optional NEXT_PUBLIC_SITE_URL
-    const allowedHosts = new Set<string>(['muac.muaclife.workers.dev','127.0.0.1','localhost']);
+    const allowedHosts = new Set<string>(['muac.muaclife.workers.dev', '127.0.0.1', 'localhost']);
     try {
       if (env && env.NEXT_PUBLIC_SITE_URL) {
         try {
@@ -194,9 +194,8 @@ export default {
                 // Authenticated — delegate to OpenNext handler
                 try {
                   // Delegar exclusivamente ao worker gerado pelo OpenNext
-                  // @ts-expect-error: Will be resolved by opennextjs-cloudflare build
-                  const openNextMod = await import("./.open-next/worker.js");
-                  const openNextAny = openNextMod as any;
+
+                  const openNextMod = await import("./.open-next/worker.js"); const openNextAny = openNextMod as any;
                   if (openNextAny && openNextAny.default && typeof openNextAny.default.fetch === 'function') {
                     return await openNextAny.default.fetch(request, env, ctx);
                   }
@@ -274,7 +273,7 @@ export default {
     }
 
     function escapeHtml(s: string) {
-      return s.replace(/[&<>\\"]/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','\\"':'&quot;' } as any)[c] || c);
+      return s.replace(/[&<>\\"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '\\"': '&quot;' } as any)[c] || c);
     }
   }
 };

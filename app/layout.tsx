@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-
+import { AnalyticsTracker } from "@/components/AnalyticsTracker";
 // Self-hosted via @fontsource (npm) rather than next/font/google, so the
 // build has no runtime dependency on fonts.googleapis.com.
 //
@@ -58,6 +58,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body>
+      <AnalyticsTracker />
         <ThemeProvider>
           <a href="#main" className="skip-link">
             Pular para o conteúdo
