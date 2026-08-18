@@ -36,7 +36,7 @@
 }
 
 .title {
-  margin-top: var(--space-2);
+  margin-top: var(--space-1);
   font-family: var(--font-hand);
   font-size: var(--fs-hand-xl);
   line-height: 0.98;
@@ -115,21 +115,32 @@
 }
 
 .blockImage {
-  border: 1px solid var(--line);
-  overflow: hidden;
+  width: 100%;
+  max-width: 900px;
+  margin: 3rem auto;
 }
 
-.blockImage img {
-  width: 100%;
+.blockImageElement {
   display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  object-fit: contain;
 }
 
 .caption {
-  margin-top: 0.6em;
-  font-family: var(--font-ui);
-  font-size: var(--fs-small);
-  color: var(--ink-faint);
+  margin-top: 0.75rem;
 }
+
+.archiveImage {
+  display: block;
+  width: 100%;
+  max-width: 720px;
+  height: auto;
+  margin: 2rem auto;
+  object-fit: contain;
+}
+
 
 .list {
   padding-left: 1.4em;

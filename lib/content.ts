@@ -3,6 +3,7 @@ import type {
   PageObjectResponse,
   BlockObjectResponse,
 } from "@notionhq/client/build/src/api-endpoints";
+import { imageSize } from "image-size";
 
 /**
  * MUAC content layer — Notion is the single source of truth.
@@ -33,29 +34,30 @@ import type {
 
 export type ArchiveBlock =
   | {
-    type: "paragraph";
-    text: string;
-  }
+      type: "paragraph";
+      text: string;
+    }
   | {
-    type: "quote";
-    text: string;
-    attribution?: string;
-  }
+      type: "quote";
+      text: string;
+      attribution?: string;
+    }
   | {
-    type: "image";
-    src: string;
-    alt: string;
-    caption?: string;
-  }
+  type: "image";
+  src: string;
+  alt: string;
+  caption?: string;
+  width?: number;
+    }
   | {
-    type: "heading";
-    text: string;
-  }
+      type: "heading";
+      text: string;
+    }
   | {
-    type: "list";
-    ordered: boolean;
-    items: string[];
-  };
+      type: "list";
+      ordered: boolean;
+      items: string[];
+    };
 
 /* =========================================================================
    Profiles
@@ -143,6 +145,7 @@ export type GalleryEntry = {
   tags: string[];
   featured: boolean;
 };
+
 /* =========================================================================
    Environment
    ========================================================================= */
@@ -164,7 +167,7 @@ const NOTION_GALLERY_DATA_SOURCE_ID =
 
 export const NOTION_CONFIGURED = Boolean(
   NOTION_TOKEN &&
-  NOTION_DATABASE_ID
+    NOTION_DATABASE_ID
 );
 
 /* =========================================================================
@@ -275,7 +278,7 @@ function findProp(
         entries.find(
           ([key, value]) =>
             key.toLowerCase() ===
-            name.toLowerCase() &&
+              name.toLowerCase() &&
             value.type === type
         );
 
@@ -296,17 +299,17 @@ function findProp(
 
   return anyOfType
     ? {
-      name: anyOfType[0],
-      value: anyOfType[1],
-    }
+        name: anyOfType[0],
+        value: anyOfType[1],
+      }
     : null;
 }
 
 function richTextToPlain(
   rt:
     | {
-      plain_text: string;
-    }[]
+        plain_text: string;
+      }[]
     | undefined
 ): string {
   if (!rt) {
@@ -344,7 +347,7 @@ function readTitle(
   if (
     !hit ||
     hit.value.type !==
-    "title"
+      "title"
   ) {
     return "";
   }
@@ -376,7 +379,7 @@ function readRichText(
   if (
     !hit ||
     hit.value.type !==
-    "rich_text"
+      "rich_text"
   ) {
     return "";
   }
@@ -408,7 +411,7 @@ function readNumber(
   if (
     !hit ||
     hit.value.type !==
-    "number"
+      "number"
   ) {
     return null;
   }
@@ -438,7 +441,7 @@ function readDate(
   if (
     !hit ||
     hit.value.type !==
-    "date" ||
+      "date" ||
     !hit.value.date
   ) {
     return "";
@@ -469,7 +472,7 @@ function readCheckbox(
   if (
     !hit ||
     hit.value.type !==
-    "checkbox"
+      "checkbox"
   ) {
     return null;
   }
@@ -499,7 +502,7 @@ function readSelect(
   if (
     !hit ||
     hit.value.type !==
-    "select" ||
+      "select" ||
     !hit.value.select
   ) {
     return null;
@@ -530,7 +533,7 @@ function readMultiSelect(
   if (
     !hit ||
     hit.value.type !==
-    "multi_select"
+      "multi_select"
   ) {
     return [];
   }
@@ -563,7 +566,7 @@ function readRelation(
   if (
     !hit ||
     hit.value.type !==
-    "relation"
+      "relation"
   ) {
     return [];
   }
@@ -638,13 +641,12 @@ function readFiles(
     hit?.name ?? null
   );
 
-
   if (
     !hit ||
     hit.value.type !==
-    "files" ||
+      "files" ||
     hit.value.files.length ===
-    0
+      0
   ) {
     return null;
   }
@@ -691,7 +693,7 @@ function readUrl(
   if (
     !hit ||
     hit.value.type !==
-    "url"
+      "url"
   ) {
     return null;
   }
@@ -750,6 +752,111 @@ function pageCoverUrl(
 }
 
 /* =========================================================================
+   Image dimensions
+   ========================================================================= */
+
+/**
+ * Cache das dimensões das imagens.
+ *
+ * As URLs de arquivos do Notion/S3 são temporárias,
+ * então usamos a URL atual como chave apenas durante
+ * o ciclo de vida do servidor.
+ */
+const imageDimensionsCache =
+  new Map<
+    string,
+    {
+      width: number;
+      height: number;
+    }
+  >();
+
+/**
+ * Obtém as dimensões reais da imagem.
+ *
+ * IMPORTANTE:
+ * A API pública do Notion não informa a largura visual
+ * escolhida no editor do Notion. Portanto, aqui usamos
+ * as dimensões reais do arquivo para preservar sua
+ * proporção.
+ */
+async function getImageDimensions(
+  url: string
+): Promise<{
+  width: number;
+  height: number;
+}> {
+  const cached =
+    imageDimensionsCache.get(
+      url
+    );
+
+  if (cached) {
+    return cached;
+  }
+
+  try {
+    const response =
+      await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(
+        `HTTP ${response.status}`
+      );
+    }
+
+    const buffer =
+      await response.arrayBuffer();
+
+    const dimensions =
+      imageSize(
+        new Uint8Array(
+          buffer
+        )
+      );
+
+    if (
+      !dimensions.width ||
+      !dimensions.height
+    ) {
+      throw new Error(
+        "Não foi possível determinar as dimensões da imagem."
+      );
+    }
+
+    const result = {
+      width:
+        dimensions.width,
+      height:
+        dimensions.height,
+    };
+
+    imageDimensionsCache.set(
+      url,
+      result
+    );
+
+    return result;
+  } catch (error) {
+    console.warn(
+      `[notion] não foi possível obter dimensões da imagem: ${url}`,
+      error
+    );
+
+    /**
+     * Fallback seguro.
+     *
+     * Mantemos uma proporção 3:2 apenas quando
+     * não conseguimos ler o arquivo.
+     */
+    return {
+      width: 1200,
+      height: 800,
+    };
+  }
+}
+
+/* =========================================================================
    Notion Data Source resolver
    ========================================================================= */
 
@@ -765,7 +872,9 @@ async function getDataSourceId(
   }
 
   const cached =
-    resolvedDataSourceIds.get(databaseId);
+    resolvedDataSourceIds.get(
+      databaseId
+    );
 
   if (cached) {
     return cached;
@@ -773,7 +882,8 @@ async function getDataSourceId(
 
   const database =
     await notion().databases.retrieve({
-      database_id: databaseId,
+      database_id:
+        databaseId,
     });
 
   /**
@@ -789,7 +899,8 @@ async function getDataSourceId(
     };
 
   const sources =
-    databaseWithSources.data_sources ?? [];
+    databaseWithSources.data_sources ??
+    [];
 
   if (sources.length === 0) {
     throw new Error(
@@ -820,6 +931,7 @@ async function getDataSourceId(
 
   return dataSourceId;
 }
+
 /* =========================================================================
    Profile resolver
    ========================================================================= */
@@ -970,16 +1082,16 @@ async function getProfileById(
           );
 
         const profile: Profile =
-        {
-          id: page.id,
-          name,
-          slug,
-          bio,
-          avatar,
-          role,
-          instagram,
-          website,
-        };
+          {
+            id: page.id,
+            name,
+            slug,
+            bio,
+            avatar,
+            role,
+            instagram,
+            website,
+          };
 
         profileCache.set(
           profileId,
@@ -1056,13 +1168,24 @@ async function resolveProfileReferences(
 function detectMediaType(
   url: string
 ): "image" | "video" | "audio" {
-  const cleanUrl = url.split("?")[0].toLowerCase();
+  const cleanUrl =
+    url
+      .split("?")[0]
+      .toLowerCase();
 
-  if (/\.(mp4|webm|mov|m4v)$/i.test(cleanUrl)) {
+  if (
+    /\.(mp4|webm|mov|m4v)$/i.test(
+      cleanUrl
+    )
+  ) {
     return "video";
   }
 
-  if (/\.(mp3|wav|ogg|m4a|aac|flac)$/i.test(cleanUrl)) {
+  if (
+    /\.(mp3|wav|ogg|m4a|aac|flac)$/i.test(
+      cleanUrl
+    )
+  ) {
     return "audio";
   }
 
@@ -1236,17 +1359,17 @@ async function mapPageToEntry(
     number:
       number !== null
         ? String(
-          number
-        ).padStart(
-          3,
-          "0"
-        )
+            number
+          ).padStart(
+            3,
+            "0"
+          )
         : String(
-          index + 1
-        ).padStart(
-          3,
-          "0"
-        ),
+            index + 1
+          ).padStart(
+            3,
+            "0"
+          ),
 
     title,
     subject,
@@ -1268,31 +1391,37 @@ async function mapPageToEntry(
 function richTextArrayToPlain(
   rt:
     | {
-      plain_text: string;
-    }[]
+        plain_text: string;
+      }[]
     | undefined
 ): string {
   return rt
     ? rt
-      .map(
-        (item) =>
-          item.plain_text
-      )
-      .join("")
+        .map(
+          (item) =>
+            item.plain_text
+        )
+        .join("")
     : "";
 }
 
-function mapBlocks(
+/**
+ * Converte os blocos do Notion.
+ *
+ * É async porque as imagens precisam ser lidas
+ * para descobrir suas dimensões reais.
+ */
+async function mapBlocks(
   blocks: BlockObjectResponse[]
-): ArchiveBlock[] {
+): Promise<ArchiveBlock[]> {
   const out: ArchiveBlock[] =
     [];
 
   let pendingList:
     | {
-      ordered: boolean;
-      items: string[];
-    }
+        ordered: boolean;
+        items: string[];
+      }
     | null = null;
 
   const flushList =
@@ -1334,24 +1463,24 @@ function mapBlocks(
       }
     } else if (
       block.type ===
-      "heading_1" ||
+        "heading_1" ||
       block.type ===
-      "heading_2" ||
+        "heading_2" ||
       block.type ===
-      "heading_3"
+        "heading_3"
     ) {
       flushList();
 
       const richText =
         block.type ===
-          "heading_1"
+        "heading_1"
           ? block.heading_1
-            .rich_text
+              .rich_text
           : block.type ===
             "heading_2"
-            ? block.heading_2
+          ? block.heading_2
               .rich_text
-            : block.heading_3
+          : block.heading_3
               .rich_text;
 
       out.push({
@@ -1376,34 +1505,49 @@ function mapBlocks(
           ),
       });
     } else if (
-      block.type ===
-      "image"
-    ) {
-      flushList();
+  block.type === "image"
+) {
+  flushList();
 
-      const image =
-        block.image;
+  const image =
+    block.image;
 
-      const url =
-        image.type ===
-          "external"
-          ? image.external.url
-          : image.file.url;
+  const url =
+    image.type === "external"
+      ? image.external.url
+      : image.file.url;
 
-      const caption =
-        richTextArrayToPlain(
-          image.caption
-        );
+  const caption =
+    richTextArrayToPlain(
+      image.caption
+    );
 
-      out.push({
-        type: "image",
-        src: url,
-        alt:
-          caption || "",
-        caption:
-          caption ||
-          undefined,
-      });
+  /**
+   * Notion pode informar a largura original/configurada
+   * da imagem através do objeto do bloco.
+   *
+   * Mantemos a informação disponível para o frontend,
+   * mas não dependemos dela para renderizar.
+   */
+  const imageWithDimensions =
+    image as typeof image & {
+      width?: number;
+    };
+
+  const width =
+    typeof imageWithDimensions.width === "number"
+      ? imageWithDimensions.width
+      : undefined;
+
+  out.push({
+    type: "image",
+    src: url,
+    alt: caption || "",
+    caption:
+      caption || undefined,
+    width,
+  });
+
     } else if (
       block.type ===
       "bulleted_list_item"
@@ -1490,7 +1634,7 @@ async function getAllBlocks(
     for (const result of response.results) {
       if (
         typeof result ===
-        "object" &&
+          "object" &&
         result !== null &&
         "type" in result
       ) {
@@ -1502,7 +1646,7 @@ async function getAllBlocks(
 
     cursor =
       response.has_more &&
-        response.next_cursor
+      response.next_cursor
         ? response.next_cursor
         : undefined;
   } while (cursor);
@@ -1529,6 +1673,7 @@ async function queryPublishedArchive(): Promise<
       NOTION_DATABASE_ID,
       NOTION_DATA_SOURCE_ID
     );
+
   const results: PageObjectResponse[] =
     [];
 
@@ -1545,27 +1690,15 @@ async function queryPublishedArchive(): Promise<
 
           ...(cursor
             ? {
-              start_cursor:
-                cursor,
-            }
+                start_cursor:
+                  cursor,
+              }
             : {}),
 
           page_size: 100,
         }
       );
 
-    /**
-     * IMPORTANT:
-     *
-     * Do not use:
-     *
-     * response.results.filter(isFullPage)
-     *
-     * because some versions of the SDK type
-     * response.results as unknown[].
-     *
-     * Instead we validate each result locally.
-     */
     for (const result of response.results) {
       if (
         isPageObject(result)
@@ -1576,7 +1709,7 @@ async function queryPublishedArchive(): Promise<
 
     cursor =
       response.has_more &&
-        response.next_cursor
+      response.next_cursor
         ? response.next_cursor
         : undefined;
   } while (cursor);
@@ -1616,14 +1749,14 @@ async function queryPublishedArchive(): Promise<
     (page) => {
       const property =
         page.properties[
-        publishedHit.name
+          publishedHit.name
         ];
 
       return (
         property.type ===
-        "checkbox" &&
+          "checkbox" &&
         property.checkbox ===
-        true
+          true
       );
     }
   );
@@ -1785,7 +1918,7 @@ export async function getArchiveEntry(
     return {
       ...matchedEntry,
       body:
-        mapBlocks(
+        await mapBlocks(
           blocks
         ),
     };
@@ -1966,132 +2099,274 @@ async function mapPageToGalleryEntry(
   page: PageObjectResponse,
   index: number
 ): Promise<GalleryEntry> {
-  const props = page.properties;
-  const entity = `Gallery[${index}]`;
+  const props =
+    page.properties;
 
-  const title = readTitle(props, entity) || "sem título";
+  const entity =
+    `Gallery[${index}]`;
 
-  const explicitSlug = readRichText(props, entity, "slug", ["Slug", "slug"]);
+  const title =
+    readTitle(
+      props,
+      entity
+    ) ||
+    "sem título";
 
-  let slug = explicitSlug || slugify(title) || page.id;
+  const explicitSlug =
+    readRichText(
+      props,
+      entity,
+      "slug",
+      [
+        "Slug",
+        "slug",
+      ]
+    );
+
+  const slug =
+    explicitSlug ||
+    slugify(title) ||
+    page.id;
 
   // Image
-  const imageCandidates = ["Image", "Imagem", "Photo", "Foto", "Cover", "Capa"];
-  let image =
-    readFiles(props, entity, "image", imageCandidates) ||
-    readUrl(props, entity, "imageUrl", ["Image URL", "Imagem URL", "Photo URL", "Foto URL"]) ||
-    pageCoverUrl(page) || "";
+  const imageCandidates = [
+    "Image",
+    "Imagem",
+    "Photo",
+    "Foto",
+    "Cover",
+    "Capa",
+  ];
+
+  const image =
+    readFiles(
+      props,
+      entity,
+      "image",
+      imageCandidates
+    ) ||
+    readUrl(
+      props,
+      entity,
+      "imageUrl",
+      [
+        "Image URL",
+        "Imagem URL",
+        "Photo URL",
+        "Foto URL",
+      ]
+    ) ||
+    pageCoverUrl(
+      page
+    ) ||
+    "";
 
   // Note
-  const note = readRichText(props, entity, "note", [
-    "Note",
-    "Nota",
-    "Caption",
-    "Legenda",
-    "Description",
-    "Descrição",
-  ]);
+  const note =
+    readRichText(
+      props,
+      entity,
+      "note",
+      [
+        "Note",
+        "Nota",
+        "Caption",
+        "Legenda",
+        "Description",
+        "Descrição",
+      ]
+    );
 
   // Date
   const date =
-    readDate(props, entity, "date", [
-      "Date",
-      "Data",
-      "Published Date",
-      "Data de publicação",
-    ]) || page.created_time;
+    readDate(
+      props,
+      entity,
+      "date",
+      [
+        "Date",
+        "Data",
+        "Published Date",
+        "Data de publicação",
+      ]
+    ) ||
+    page.created_time;
 
   // Source
-  const rawSource = readSelect(props, entity, "source", ["Source", "Fonte"]);
+  const rawSource =
+    readSelect(
+      props,
+      entity,
+      "source",
+      [
+        "Source",
+        "Fonte",
+      ]
+    );
+
   const source =
-    rawSource && rawSource.toLowerCase() === "nicoly"
+    rawSource &&
+    rawSource
+      .toLowerCase() ===
+      "nicoly"
       ? "nicoly"
       : "muac";
 
   // Tags
-  const tags = readMultiSelect(props, entity, "tags", ["Tags", "Categorias", "Tags/Categorias"]);
+  const tags =
+    readMultiSelect(
+      props,
+      entity,
+      "tags",
+      [
+        "Tags",
+        "Categorias",
+        "Tags/Categorias",
+      ]
+    );
 
   // Featured
-  const featured = readCheckbox(props, entity, "featured", ["Featured", "Destaque", "Destacar"]) ?? false;
+  const featured =
+    readCheckbox(
+      props,
+      entity,
+      "featured",
+      [
+        "Featured",
+        "Destaque",
+        "Destacar",
+      ]
+    ) ?? false;
 
-return {
-  id: page.id,
-  slug,
-  title,
-  note,
-  image,
-  mediaType: detectMediaType(image),
-  date,
-  source,
-  tags,
-  featured,
-};
+  return {
+    id: page.id,
+    slug,
+    title,
+    note,
+    image,
+    mediaType:
+      detectMediaType(
+        image
+      ),
+    date,
+    source,
+    tags,
+    featured,
+  };
 }
 
-async function queryPublishedGallery(): Promise<PageObjectResponse[]> {
-  if (!NOTION_GALLERY_DATABASE_ID || !NOTION_TOKEN) {
+async function queryPublishedGallery(): Promise<
+  PageObjectResponse[]
+> {
+  if (
+    !NOTION_GALLERY_DATABASE_ID ||
+    !NOTION_TOKEN
+  ) {
     return [];
   }
 
   try {
-    const dataSourceId = await getDataSourceId(
-      NOTION_GALLERY_DATABASE_ID,
-      NOTION_GALLERY_DATA_SOURCE_ID
-    );
+    const dataSourceId =
+      await getDataSourceId(
+        NOTION_GALLERY_DATABASE_ID,
+        NOTION_GALLERY_DATA_SOURCE_ID
+      );
 
-    const results: PageObjectResponse[] = [];
+    const results: PageObjectResponse[] =
+      [];
 
-    let cursor: string | undefined;
+    let cursor:
+      | string
+      | undefined;
 
     do {
-      const response = await notion().dataSources.query({
-        data_source_id: dataSourceId,
-        ...(cursor ? { start_cursor: cursor } : {}),
-        page_size: 100,
-      });
+      const response =
+        await notion().dataSources.query(
+          {
+            data_source_id:
+              dataSourceId,
+            ...(cursor
+              ? {
+                  start_cursor:
+                    cursor,
+                }
+              : {}),
+            page_size: 100,
+          }
+        );
 
       for (const result of response.results) {
-        if (isPageObject(result)) {
-          results.push(result);
+        if (
+          isPageObject(
+            result
+          )
+        ) {
+          results.push(
+            result
+          );
         }
       }
 
       cursor =
-        response.has_more && response.next_cursor
+        response.has_more &&
+        response.next_cursor
           ? response.next_cursor
           : undefined;
     } while (cursor);
 
-    if (results.length === 0) {
+    if (
+      results.length ===
+      0
+    ) {
       return results;
     }
 
-    const publishedHit = findProp(
-      results[0].properties,
-      "checkbox",
-      ["Published", "Publicado", "Public"]
-    );
+    const publishedHit =
+      findProp(
+        results[0].properties,
+        "checkbox",
+        [
+          "Published",
+          "Publicado",
+          "Public",
+        ]
+      );
 
     if (!publishedHit) {
       return results;
     }
 
-    return results.filter((page) => {
-      const property = page.properties[publishedHit.name];
+    return results.filter(
+      (page) => {
+        const property =
+          page.properties[
+            publishedHit.name
+          ];
 
-      return (
-        property.type === "checkbox" &&
-        property.checkbox === true
-      );
-    });
+        return (
+          property.type ===
+            "checkbox" &&
+          property.checkbox ===
+            true
+        );
+      }
+    );
   } catch (error) {
-    console.warn("[notion] erro ao consultar Gallery", error);
+    console.warn(
+      "[notion] erro ao consultar Gallery",
+      error
+    );
+
     return [];
   }
 }
 
-export async function getGallery(): Promise<GalleryEntry[]> {
-  if (!NOTION_GALLERY_DATABASE_ID) {
+export async function getGallery(): Promise<
+  GalleryEntry[]
+> {
+  if (
+    !NOTION_GALLERY_DATABASE_ID
+  ) {
     if (
       process.env.NODE_ENV !==
       "production"
@@ -2105,33 +2380,74 @@ export async function getGallery(): Promise<GalleryEntry[]> {
   }
 
   if (!NOTION_TOKEN) {
-    if (process.env.NODE_ENV !== "production") {
-      console.warn("[notion] NOTION_TOKEN não configurado — retornando array vazio");
+    if (
+      process.env.NODE_ENV !==
+      "production"
+    ) {
+      console.warn(
+        "[notion] NOTION_TOKEN não configurado — retornando array vazio"
+      );
     }
+
     return [];
   }
 
   try {
-    const pages = await queryPublishedGallery();
+    const pages =
+      await queryPublishedGallery();
 
-    if (pages.length === 0) {
-      if (process.env.NODE_ENV !== "production") {
-        console.warn("[notion] query retornou 0 resultados — getGallery retornará array vazio");
+    if (
+      pages.length ===
+      0
+    ) {
+      if (
+        process.env.NODE_ENV !==
+        "production"
+      ) {
+        console.warn(
+          "[notion] query retornou 0 resultados — getGallery retornará array vazio"
+        );
       }
+
       return [];
     }
 
-    const entries = await Promise.all(
-      pages.map((page, index) => mapPageToGalleryEntry(page, index))
+    const entries =
+      await Promise.all(
+        pages.map(
+          (
+            page,
+            index
+          ) =>
+            mapPageToGalleryEntry(
+              page,
+              index
+            )
+        )
+      );
+
+    const filtered =
+      entries.filter(
+        (entry) =>
+          !!entry.image &&
+          entry.image.trim() !==
+            ""
+      );
+
+    filtered.sort(
+      (a, b) =>
+        a.date < b.date
+          ? 1
+          : -1
     );
-
-    const filtered = entries.filter((e) => !!e.image && e.image.trim() !== "");
-
-    filtered.sort((a, b) => (a.date < b.date ? 1 : -1));
 
     return filtered;
   } catch (error) {
-    console.warn("[notion] erro ao buscar gallery", error);
+    console.warn(
+      "[notion] erro ao buscar gallery",
+      error
+    );
+
     return [];
   }
 }

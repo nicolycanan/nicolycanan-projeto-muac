@@ -32,8 +32,7 @@ export async function generateMetadata({
   const { slug } = await params;
 
   try {
-    const entry =
-      await getArchiveEntry(slug);
+    const entry = await getArchiveEntry(slug);
 
     if (!entry) {
       return {};
@@ -72,8 +71,7 @@ export default async function ArchiveEntryPage({
   let error: string | null = null;
 
   try {
-    entry =
-      await getArchiveEntry(slug);
+    entry = await getArchiveEntry(slug);
   } catch (err) {
     error =
       err instanceof Error
@@ -104,20 +102,15 @@ export default async function ArchiveEntryPage({
     notFound();
   }
 
-  const all =
-    await getArchive();
+  const all = await getArchive();
 
-  const idx =
-    all.findIndex(
-      (e) => e.slug === slug
-    );
+  const idx = all.findIndex(
+    (e) => e.slug === slug
+  );
 
   const next =
     all.length > 1
-      ? all[
-          (idx + 1) %
-            all.length
-        ]
+      ? all[(idx + 1) % all.length]
       : null;
 
   return (
@@ -130,11 +123,7 @@ export default async function ArchiveEntryPage({
       </Link>
 
       <header className={styles.hero}>
-        <div
-          className={
-            styles.eyebrow
-          }
-        >
+        <div className={styles.eyebrow}>
           <span
             className={`mono-label ${styles.number}`}
           >
@@ -142,205 +131,138 @@ export default async function ArchiveEntryPage({
           </span>
         </div>
 
-        <h1
-          className={
-            styles.title
-          }
-        >
+        <h1 className={styles.title}>
           {entry.title}
         </h1>
 
-        <p
-          className={
-            styles.subject
-          }
-        >
-          {entry.subject} —{" "}
-          {entry.role}
+        <p className={styles.subject}>
+          {entry.subject} — {entry.role}
         </p>
 
-        <div
-          className={
-            styles.tags
-          }
-        >
-          {entry.tags.map(
-            (tag) => (
-              <span key={tag}>
-                {tag}
-              </span>
-            )
-          )}
+        <div className={styles.tags}>
+          {entry.tags.map((tag) => (
+            <span key={tag}>
+              {tag}
+            </span>
+          ))}
         </div>
       </header>
 
-      <div
-        className={
-          styles.coverWrap
-        }
-      >
-        <Image
-          src={entry.cover}
-          alt=""
-          fill
-          sizes="100vw"
-          priority
-        />
-      </div>
-
-      <div
-        className={
-          styles.body
-        }
-      >
-        {entry.body.map(
-          (block, i) => {
-            if (
-              block.type ===
-              "paragraph"
-            ) {
-              return (
-                <p
-                  key={i}
-                  className={
-                    styles.paragraph
-                  }
-                >
-                  {block.text}
-                </p>
-              );
-            }
-
-            if (
-              block.type ===
-              "heading"
-            ) {
-              return (
-                <h2
-                  key={i}
-                  className={
-                    styles.heading
-                  }
-                >
-                  {block.text}
-                </h2>
-              );
-            }
-
-            if (
-              block.type ===
-              "quote"
-            ) {
-              return (
-                <blockquote
-                  key={i}
-                  className={
-                    styles.quote
-                  }
-                >
-                  &ldquo;
-                  {block.text}
-                  &rdquo;
-
-                  {block.attribution && (
-                    <span
-                      className={
-                        styles.quoteAttribution
-                      }
-                    >
-                      {
-                        block.attribution
-                      }
-                    </span>
-                  )}
-                </blockquote>
-              );
-            }
-
-            if (
-              block.type ===
-              "image"
-            ) {
-              return (
-                <figure
-                  key={i}
-                  className={
-                    styles.blockImage
-                  }
-                >
-                  <Image
-                    src={
-                      block.src
-                    }
-                    alt={
-                      block.alt
-                    }
-                    width={
-                      1200
-                    }
-                    height={
-                      800
-                    }
-                  />
-
-                  {block.caption && (
-                    <figcaption
-                      className={
-                        styles.caption
-                      }
-                    >
-                      {
-                        block.caption
-                      }
-                    </figcaption>
-                  )}
-                </figure>
-              );
-            }
-
-            if (
-              block.type ===
-              "list"
-            ) {
-              const ListTag =
-                block.ordered
-                  ? "ol"
-                  : "ul";
-
-              return (
-                <ListTag
-                  key={i}
-                  className={
-                    styles.list
-                  }
-                >
-                  {block.items.map(
-                    (
-                      item,
-                      j
-                    ) => (
-                      <li
-                        key={j}
-                      >
-                        {item}
-                      </li>
-                    )
-                  )}
-                </ListTag>
-              );
-            }
-
-            return null;
+      <div className={styles.body}>
+        {entry.body.map((block, i) => {
+          if (block.type === "paragraph") {
+            return (
+              <p
+                key={i}
+                className={styles.paragraph}
+              >
+                {block.text}
+              </p>
+            );
           }
-        )}
+
+          if (block.type === "heading") {
+            return (
+              <h2
+                key={i}
+                className={styles.heading}
+              >
+                {block.text}
+              </h2>
+            );
+          }
+
+          if (block.type === "quote") {
+            return (
+              <blockquote
+                key={i}
+                className={styles.quote}
+              >
+                &ldquo;
+                {block.text}
+                &rdquo;
+
+                {block.attribution && (
+                  <span
+                    className={
+                      styles.quoteAttribution
+                    }
+                  >
+                    {block.attribution}
+                  </span>
+                )}
+              </blockquote>
+            );
+          }
+
+          /*
+           * Imagens vindas do Notion.
+           *
+           * O Notion API fornece a URL do arquivo,
+           * mas não preserva o tamanho visual definido
+           * no editor do Notion.
+           *
+           * Portanto, o tamanho visual é controlado
+           * pelo CSS do MUAC.
+           */
+          if (block.type === "image") {
+            return (
+              <figure
+                key={i}
+                className={styles.blockImage}
+              >
+<Image
+  src={block.src}
+  alt={block.alt || ""}
+  width={1200}
+  height={800}
+  sizes="(max-width: 768px) 100vw, 900px"
+  style={{
+    width: "100%",
+    height: "auto",
+  }}
+  loading={i === 0 ? "eager" : "lazy"}
+/>
+
+                {block.caption && (
+                  <figcaption
+                    className={styles.caption}
+                  >
+                    {block.caption}
+                  </figcaption>
+                )}
+              </figure>
+            );
+          }
+
+          if (block.type === "list") {
+            const ListTag =
+              block.ordered ? "ol" : "ul";
+
+            return (
+              <ListTag
+                key={i}
+                className={styles.list}
+              >
+                {block.items.map(
+                  (item, j) => (
+                    <li key={j}>
+                      {item}
+                    </li>
+                  )
+                )}
+              </ListTag>
+            );
+          }
+
+          return null;
+        })}
       </div>
 
       {next && (
         <Link
           href={`/archive/${next.slug}`}
-          className={
-            styles.next
-          }
+          className={styles.next}
         >
           <span>
             <span
@@ -352,9 +274,7 @@ export default async function ArchiveEntryPage({
             <br />
 
             <span
-              className={
-                styles.nextTitle
-              }
+              className={styles.nextTitle}
             >
               {next.title}
             </span>
