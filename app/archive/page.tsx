@@ -33,10 +33,7 @@ export default async function ArchivePage() {
         </h1>
 
         <p className={styles.intro}>
-          Histórias específicas, não biografias.
-          Um lugar para artistas, DJs,
-          fotógrafos, coletivos e gente da cena
-          que talvez você ainda não conheça.
+          Textos que não cabem em um tweet.
         </p>
       </header>
 
@@ -58,13 +55,7 @@ export default async function ArchivePage() {
       ) : entries.length === 0 ? (
         <div className={styles.emptyState}>
           <p>
-            O Archive está vazio — nenhum
-            conteúdo publicado foi encontrado.
-          </p>
-
-          <p>
-            Confirme se a página do Notion
-            possui itens com Published marcado.
+            <span className="MainText">se está vazio, está estranho...</span>
           </p>
         </div>
       ) : (

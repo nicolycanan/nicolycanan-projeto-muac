@@ -19,13 +19,27 @@ export default async function GalleryPage() {
       <section className={styles.gallery}>
         {entries.length === 0 ? (
           <div className={styles.empty} aria-live="polite">
-            Ainda não há imagens por aqui.
+            <span className="MainText">reservado para as minhas memórias</span>
           </div>
         ) : (
           entries.map((entry) => (
             <article key={entry.id} className={styles.item}>
               <div className={styles.imageWrapper}>
-                <img src={entry.image} alt={entry.note || entry.title} />
+                {entry.media && entry.media.mediaType === "image" ? (
+                  <img src={entry.media.url} alt={entry.note || entry.title} />
+                ) : entry.media && entry.media.mediaType === "video" ? (
+                  <video controls preload="metadata">
+                    <source src={entry.media.url} />
+                    Your browser does not support the video tag.
+                  </video>
+                ) : entry.media && entry.media.mediaType === "audio" ? (
+                  <audio controls preload="metadata">
+                    <source src={entry.media.url} />
+                    Your browser does not support the audio element.
+                  </audio>
+                ) : entry.image ? (
+                  <img src={entry.image} alt={entry.note || entry.title} />
+                ) : null}
               </div>
 
               <div className={styles.meta}>

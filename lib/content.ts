@@ -131,12 +131,22 @@ export type Playlist = {
    Gallery
    ========================================================================= */
 
+export type MediaType = "image" | "video" | "audio";
+
+export type Media = {
+  url: string;
+  name?: string;
+  mediaType: MediaType;
+};
+
 export type GalleryEntry = {
   id: string;
   slug: string;
   title: string;
   note: string;
-  image: string;
+  // Prefer media object; kept for backward compatibility some consumers may still read image
+  image?: string;
+  media?: Media;
   date: string;
   source: "muac" | "nicoly";
   tags: string[];
@@ -155,6 +165,12 @@ const NOTION_DATABASE_ID =
 
 const NOTION_DATA_SOURCE_ID =
   process.env.NOTION_DATA_SOURCE_ID?.trim();
+
+const NOTION_GALLERY_DATABASE_ID =
+  process.env.NOTION_GALLERY_DATABASE_ID?.trim();
+
+const NOTION_GALLERY_DATA_SOURCE_ID =
+  process.env.NOTION_GALLERY_DATA_SOURCE_ID?.trim();
 
 export const NOTION_CONFIGURED = Boolean(
   NOTION_TOKEN &&
@@ -613,54 +629,69 @@ function readFilesArray(
     );
 }
 
+// Returns the first media file as a rich object (keeps readFiles for compatibility)
+function readFirstMedia(
+  props: Props,
+  entity: string,
+  field: string,
+  candidates: string[]
+): Media | null {
+  const hit = findProp(props, "files", candidates);
+
+  logMatch(entity, field, hit?.name ?? null);
+
+  if (!hit || hit.value.type !== "files" || hit.value.files.length === 0) {
+    return null;
+  }
+
+  const file = hit.value.files[0];
+
+  // Prefer explicit name if provided by Notion
+  const name = (file as any).name ?? (file.type === "external" ? (file as any).external?.name : undefined) ?? (file.type === "file" ? (file as any).file?.name : undefined);
+
+  let url: string | null = null;
+  if ((file as any).type === "external") {
+    url = (file as any).external?.url ?? null;
+  } else if ((file as any).type === "file") {
+    url = (file as any).file?.url ?? null;
+  }
+
+  if (!url) return null;
+
+  const determineType = (candidateName?: string): MediaType => {
+    const lookup = (candidateName ?? url).split("?")[0].split("/").pop() ?? "";
+    const ext = lookup.includes(".") ? lookup.split(".").pop()!.toLowerCase() : "";
+
+    const imageExts = new Set(["jpg", "jpeg", "png", "webp", "gif"]);
+    const videoExts = new Set(["mp4", "webm", "mov", "m4v"]);
+    const audioExts = new Set(["mp3", "wav", "ogg", "m4a", "aac", "flac"]);
+
+    if (imageExts.has(ext)) return "image";
+    if (videoExts.has(ext)) return "video";
+    if (audioExts.has(ext)) return "audio";
+
+    // fallback to image to preserve compatibility
+    return "image";
+  };
+
+  const mediaType = determineType(name ?? undefined);
+
+  return {
+    url,
+    name: name ?? undefined,
+    mediaType,
+  };
+}
+
+// Backwards compatible readFiles that returns only a string URL (first file)
 function readFiles(
   props: Props,
   entity: string,
   field: string,
   candidates: string[]
 ): string | null {
-  const hit =
-    findProp(
-      props,
-      "files",
-      candidates
-    );
-
-  logMatch(
-    entity,
-    field,
-    hit?.name ?? null
-  );
-
-
-  if (
-    !hit ||
-    hit.value.type !==
-      "files" ||
-    hit.value.files.length ===
-      0
-  ) {
-    return null;
-  }
-
-  const file =
-    hit.value.files[0];
-
-  if (
-    file.type ===
-    "external"
-  ) {
-    return file.external.url;
-  }
-
-  if (
-    file.type ===
-    "file"
-  ) {
-    return file.file.url;
-  }
-
-  return null;
+  const media = readFirstMedia(props, entity, field, candidates);
+  return media ? media.url : null;
 }
 
 function readUrl(
@@ -747,38 +778,30 @@ function pageCoverUrl(
    Notion Data Source resolver
    ========================================================================= */
 
-let resolvedDataSourceId:
-  | string
-  | null = null;
+const resolvedDataSourceIds = new Map<string, string | null>();
 
-async function getDataSourceId(): Promise<string> {
-  if (
-    NOTION_DATA_SOURCE_ID
-  ) {
-    return NOTION_DATA_SOURCE_ID;
+async function getDataSourceId(
+  databaseId: string,
+  explicitDataSourceId?: string
+): Promise<string> {
+  // If an explicit data source id is provided (from env), prefer it
+  if (explicitDataSourceId) {
+    return explicitDataSourceId;
   }
 
-  if (
-    resolvedDataSourceId
-  ) {
-    return resolvedDataSourceId;
+  const cached = resolvedDataSourceIds.get(databaseId);
+
+  if (cached) {
+    return cached;
   }
 
-  if (
-    !NOTION_DATABASE_ID
-  ) {
-    throw new Error(
-      "NOTION_DATABASE_ID nÃ£o estÃ¡ definido."
-    );
+  if (!databaseId) {
+    throw new Error("databaseId precisa ser informado para resolver o data source.");
   }
 
-  const database =
-    await notion().databases.retrieve(
-      {
-        database_id:
-          NOTION_DATABASE_ID,
-      }
-    );
+  const database = await notion().databases.retrieve({
+    database_id: databaseId,
+  });
 
   /**
    * The SDK typings can differ between versions,
@@ -792,36 +815,26 @@ async function getDataSourceId(): Promise<string> {
       }>;
     };
 
-  const sources =
-    databaseWithSources.data_sources ??
-    [];
+  const sources = databaseWithSources.data_sources ?? [];
 
-  if (
-    sources.length ===
-    0
-  ) {
+  if (sources.length === 0) {
     throw new Error(
       [
         "Nenhum Data Source foi encontrado dentro do database do Notion.",
-        `Database ID: ${NOTION_DATABASE_ID}`,
+        `Database ID: ${databaseId}`,
         "Verifique se a integraÃ§Ã£o tem acesso ao database.",
       ].join(" ")
     );
   }
 
-  resolvedDataSourceId =
-    sources[0].id;
+  const resolved = sources[0].id;
+  resolvedDataSourceIds.set(databaseId, resolved);
 
-  if (
-    process.env.NODE_ENV !==
-    "production"
-  ) {
-    console.log(
-      `[notion] Data Source resolvido automaticamente: ${resolvedDataSourceId}`
-    );
+  if (process.env.NODE_ENV !== "production") {
+    console.log(`[notion] Data Source resolvido automaticamente: ${resolved}`);
   }
 
-  return resolvedDataSourceId;
+  return resolved;
 }
 
 /* =========================================================================
@@ -1513,7 +1526,10 @@ async function queryPublishedArchive(): Promise<
   }
 
   const dataSourceId =
-    await getDataSourceId();
+    await getDataSourceId(
+      NOTION_DATABASE_ID,
+      NOTION_DATA_SOURCE_ID
+    );
 
   const results: PageObjectResponse[] =
     [];
@@ -1961,12 +1977,31 @@ async function mapPageToGalleryEntry(
 
   let slug = explicitSlug || slugify(title) || page.id;
 
-  // Image
+  // Media (Files & media preferred)
   const imageCandidates = ["Image", "Imagem", "Photo", "Foto", "Cover", "Capa"];
-  let image =
-    readFiles(props, entity, "image", imageCandidates) ||
-    readUrl(props, entity, "imageUrl", ["Image URL", "Imagem URL", "Photo URL", "Foto URL"]) ||
-    pageCoverUrl(page) || "";
+  const media =
+    readFirstMedia(props, entity, "image", imageCandidates) ||
+    ((): Media | null => {
+      const url = readUrl(props, entity, "imageUrl", ["Image URL", "Imagem URL", "Photo URL", "Foto URL"]);
+      if (!url) return null;
+      // determine type by extension
+      const name = url.split("?")[0].split("/").pop();
+      const ext = name && name.includes(".") ? name.split(".").pop()!.toLowerCase() : "";
+      const imageExts = new Set(["jpg", "jpeg", "png", "webp", "gif"]);
+      const videoExts = new Set(["mp4", "webm", "mov", "m4v"]);
+      const audioExts = new Set(["mp3", "wav", "ogg", "m4a", "aac", "flac"]);
+      let mediaType: MediaType = "image";
+      if (videoExts.has(ext)) mediaType = "video";
+      else if (audioExts.has(ext)) mediaType = "audio";
+      return { url, name: name ?? undefined, mediaType };
+    })() ||
+    ((): Media | null => {
+      const cover = pageCoverUrl(page);
+      return cover ? { url: cover, mediaType: "image" } : null;
+    })();
+
+  // legacy image string for compatibility
+  const image = media ? media.url : "";
 
   // Note
   const note = readRichText(props, entity, "note", [
@@ -2006,6 +2041,7 @@ async function mapPageToGalleryEntry(
     title,
     note,
     image,
+    media: media ?? undefined,
     date,
     source,
     tags,
@@ -2014,52 +2050,71 @@ async function mapPageToGalleryEntry(
 }
 
 async function queryPublishedGallery(): Promise<PageObjectResponse[]> {
-  if (!NOTION_DATABASE_ID || !NOTION_TOKEN) {
+  if (!NOTION_GALLERY_DATABASE_ID || !NOTION_TOKEN) {
     return [];
   }
 
-  const dataSourceId = await getDataSourceId();
+  try {
+    const dataSourceId = await getDataSourceId(
+      NOTION_GALLERY_DATABASE_ID,
+      NOTION_GALLERY_DATA_SOURCE_ID
+    );
 
-  const results: PageObjectResponse[] = [];
+    const results: PageObjectResponse[] = [];
 
-  let cursor: string | undefined;
+    let cursor: string | undefined;
 
-  do {
-    const response = await notion().dataSources.query({
-      data_source_id: dataSourceId,
-      ...(cursor ? { start_cursor: cursor } : {}),
-      page_size: 100,
-    });
+    do {
+      const response = await notion().dataSources.query({
+        data_source_id: dataSourceId,
+        ...(cursor ? { start_cursor: cursor } : {}),
+        page_size: 100,
+      });
 
-    for (const result of response.results) {
-      if (isPageObject(result)) {
-        results.push(result);
+      for (const result of response.results) {
+        if (isPageObject(result)) {
+          results.push(result);
+        }
       }
+
+      cursor =
+        response.has_more && response.next_cursor
+          ? response.next_cursor
+          : undefined;
+    } while (cursor);
+
+    if (results.length === 0) {
+      return results;
     }
 
-    cursor = response.has_more && response.next_cursor ? response.next_cursor : undefined;
-  } while (cursor);
+    const publishedHit = findProp(
+      results[0].properties,
+      "checkbox",
+      ["Published", "Publicado", "Public"]
+    );
 
-  if (results.length === 0) {
-    return results;
+    if (!publishedHit) {
+      return results;
+    }
+
+    return results.filter((page) => {
+      const property = page.properties[publishedHit.name];
+
+      return (
+        property.type === "checkbox" &&
+        property.checkbox === true
+      );
+    });
+  } catch (error) {
+    console.warn("[notion] erro ao consultar Gallery", error);
+    return [];
   }
-
-  const publishedHit = findProp(results[0].properties, "checkbox", ["Published", "Publicado", "Public"]);
-
-  if (!publishedHit) {
-    return results;
-  }
-
-  return results.filter((page) => {
-    const property = page.properties[publishedHit.name];
-    return property.type === "checkbox" && property.checkbox === true;
-  });
 }
 
 export async function getGallery(): Promise<GalleryEntry[]> {
-  if (!NOTION_DATABASE_ID) {
+  if (!NOTION_GALLERY_DATABASE_ID) {
     if (process.env.NODE_ENV !== "production") {
-      console.warn("[notion] NOTION_DATABASE_ID nÃ£o configurado â€” retornando array vazio");
+      console.warn("[notion] NOTION_GALLERY_DATABASE_ID não configurado — retornando array vazio");
     }
     return [];
   }
