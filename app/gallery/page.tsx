@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { getGallery } from "@/lib/content";
+import AudioPlayer from "./AudioPlayer";
 import styles from "./gallery.module.css";
 
 export const metadata: Metadata = {
   title: "Gallery",
-  description: "Galeria de imagens, vídeos e áudios da MUAC e do acervo pessoal.",
+  description:
+    "Galeria de imagens, vídeos e áudios da MUAC e do acervo pessoal.",
 };
 
 export default async function GalleryPage() {
@@ -37,16 +39,10 @@ export default async function GalleryPage() {
                     Seu navegador não suporta reprodução de vídeo.
                   </video>
                 ) : entry.mediaType === "audio" ? (
-                  <div className={styles.audioWrapper}>
-                    <audio
-                      className={styles.audio}
-                      src={entry.image}
-                      controls
-                      preload="metadata"
-                    >
-                      Seu navegador não suporta reprodução de áudio.
-                    </audio>
-                  </div>
+                  <AudioPlayer
+                    src={entry.image}
+                    title={entry.title}
+                  />
                 ) : (
                   <img
                     className={styles.media}

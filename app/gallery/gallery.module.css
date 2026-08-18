@@ -11,50 +11,344 @@
   font-size: var(--fs-hand-lg);
 }
 
-
-.imageWrapper {
-  width: 100%;
-  overflow: hidden;
-  background: var(--bg-panel);
-}
+/* =========================
+   GALLERY
+   ========================= */
 
 .gallery {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
+  gap: 1.5rem;
 
   width: 85%;
   margin: 0 auto;
 
-  align-items: start;
+  align-items: center;
+  justify-items: center;
 }
 
 .item {
   width: 100%;
   min-width: 0;
+  align-self: center;
 }
+
+/* =========================
+   MEDIA
+   ========================= */
 
 .imageWrapper {
   width: 100%;
+  min-width: 0;
   overflow: hidden;
   background: transparent;
 }
 
 .media {
   display: block;
-  width: 80%;
-  max-width: 80%;
-  height: auto;
-    margin: 0;
 
+  width: 100%;
+  max-width: 100%;
+
+  height: auto;
+
+  margin: 0;
+  padding: 0;
+
+  border: 0;
 }
 
-@media (min-width: 720px) {
-  .gallery {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    width: 85%;
+/* =========================
+   VIDEO
+   ========================= */
+
+.imageWrapper video {
+  display: block;
+
+  width: 100%;
+  max-width: 100%;
+
+  height: auto;
+
+  margin: 0;
+  padding: 0;
+
+  border: 0;
+}
+
+/* =========================
+   AUDIO PLAYER
+   ========================= */
+
+.audioPlayer {
+  width: 100%;
+  min-width: 0;
+
+  box-sizing: border-box;
+
+  padding: 0.75rem;
+
+  border: 1px solid var(--ink-dim);
+
+  background: var(--bg-panel);
+
+  overflow: hidden;
+}
+
+/* Esconde completamente o player nativo */
+.audioPlayer audio {
+  display: none;
+}
+
+/* Título do áudio */
+
+.audioTop {
+  display: flex;
+  align-items: center;
+
+  gap: 0.5rem;
+
+  min-width: 0;
+
+  margin-bottom: 0.75rem;
+}
+
+.audioIcon {
+  flex: 0 0 auto;
+
+  font-size: 1.1rem;
+
+  line-height: 1;
+}
+
+.audioTitle {
+  min-width: 0;
+
+  overflow: hidden;
+
+  font-family: var(--font-hand);
+
+  font-size: var(--fs-hand-md);
+
+  line-height: 1.1;
+
+  white-space: nowrap;
+
+  text-overflow: ellipsis;
+}
+
+/* Controles */
+
+.audioControls {
+  display: flex;
+
+  align-items: center;
+
+  gap: 0.5rem;
+
+  width: 100%;
+  min-width: 0;
+}
+
+.playButton {
+  flex: 0 0 auto;
+
+  width: 2rem;
+  height: 2rem;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: 1px solid var(--ink-dim);
+
+  background: transparent;
+
+  color: inherit;
+
+  font-size: 0.75rem;
+
+  cursor: pointer;
+}
+
+.playButton:hover {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+/* Barra de progresso */
+
+.progressContainer {
+  flex: 1 1 auto;
+
+  min-width: 0;
+
+  overflow: hidden;
+}
+
+.progress {
+  --progress: 0%;
+
+  display: block;
+
+  width: 100%;
+
+  height: 1rem;
+
+  margin: 0;
+
+  padding: 0;
+
+  appearance: none;
+
+  background: transparent;
+
+  cursor: pointer;
+}
+
+/* Chrome / Edge / Safari */
+
+.progress::-webkit-slider-runnable-track {
+  height: 2px;
+
+  background:
+    linear-gradient(
+      to right,
+      currentColor var(--progress),
+      var(--ink-dim) var(--progress)
+    );
+}
+
+.progress::-webkit-slider-thumb {
+  appearance: none;
+
+  width: 10px;
+  height: 10px;
+
+  margin-top: -4px;
+
+  border: 0;
+
+  border-radius: 50%;
+
+  background: currentColor;
+}
+
+/* Firefox */
+
+.progress::-moz-range-track {
+  height: 2px;
+
+  background: var(--ink-dim);
+}
+
+.progress::-moz-range-progress {
+  height: 2px;
+
+  background: currentColor;
+}
+
+.progress::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+
+  border: 0;
+  border-radius: 50%;
+
+  background: currentColor;
+}
+
+/* Tempo */
+
+.audioTime {
+  flex: 0 0 auto;
+
+  font-size: var(--fs-small);
+
+  color: var(--ink-dim);
+
+  white-space: nowrap;
+}
+
+/* =========================
+   BARRAS ANIMADAS
+   ========================= */
+
+.audioBars {
+  display: flex;
+
+  align-items: center;
+
+  gap: 3px;
+
+  height: 12px;
+
+  margin-top: 0.6rem;
+}
+
+.audioBars span {
+  display: block;
+
+  width: 2px;
+  height: 4px;
+
+  background: currentColor;
+
+  opacity: 0.5;
+}
+
+.audioBarsPlaying span {
+  animation: audioBars 0.8s ease-in-out infinite alternate;
+}
+
+.audioBarsPlaying span:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.audioBarsPlaying span:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.audioBarsPlaying span:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+.audioBarsPlaying span:nth-child(4) {
+  animation-delay: 0.3s;
+}
+
+.audioBarsPlaying span:nth-child(5) {
+  animation-delay: 0.15s;
+}
+
+.audioBarsPlaying span:nth-child(6) {
+  animation-delay: 0.25s;
+}
+
+.audioBarsPlaying span:nth-child(7) {
+  animation-delay: 0.05s;
+}
+
+.audioBarsPlaying span:nth-child(8) {
+  animation-delay: 0.2s;
+}
+
+@keyframes audioBars {
+  from {
+    height: 3px;
+  }
+
+  to {
+    height: 12px;
   }
 }
+
+/* =========================
+   TEXTOS
+   ========================= */
 
 .meta {
   padding: var(--space-1) 0;
@@ -62,23 +356,65 @@
 
 .meta h2 {
   margin: 0 0 0 0;
+
   font-family: var(--font-hand);
+
   font-size: var(--fs-hand-md);
 }
 
 .meta p {
-  margin: 0 0 0. 0;
+  margin: 0;
+
   color: var(--ink-dim);
 }
 
 .meta time {
   display: block;
+
   color: var(--ink-dim);
+
   font-size: var(--fs-small);
 }
 
+/* =========================
+   EMPTY
+   ========================= */
+
 .empty {
   margin: var(--space-3) 0;
+
   color: var(--ink-dim);
 }
 
+/* =========================
+   DESKTOP
+   ========================= */
+
+@media (min-width: 720px) {
+  .gallery {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    width: 85%;
+
+    align-items: center;
+    justify-items: center;
+  }
+}
+
+/* =========================
+   MOBILE
+   ========================= */
+
+@media (max-width: 719px) {
+  .audioPlayer {
+    padding: 0.6rem;
+  }
+
+  .audioTime {
+    font-size: 0.7rem;
+  }
+
+  .playButton {
+    width: 1.8rem;
+    height: 1.8rem;
+  }
+}
