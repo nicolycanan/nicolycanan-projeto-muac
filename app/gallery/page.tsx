@@ -4,7 +4,7 @@ import styles from "./gallery.module.css";
 
 export const metadata: Metadata = {
   title: "Gallery",
-  description: "Galeria de imagens da MUAC e do acervo pessoal.",
+  description: "Galeria de imagens, vídeos e áudios da MUAC e do acervo pessoal.",
 };
 
 export default async function GalleryPage() {
@@ -19,13 +19,42 @@ export default async function GalleryPage() {
       <section className={styles.gallery}>
         {entries.length === 0 ? (
           <div className={styles.empty} aria-live="polite">
-            Ainda não há imagens por aqui.
+            Ainda não pensei em nada bom o suficiente pra colocar aqui.
           </div>
         ) : (
           entries.map((entry) => (
             <article key={entry.id} className={styles.item}>
               <div className={styles.imageWrapper}>
-                <img src={entry.image} alt={entry.note || entry.title} />
+                {entry.mediaType === "video" ? (
+                  <video
+                    className={styles.media}
+                    src={entry.image}
+                    controls
+                    preload="metadata"
+                    playsInline
+                    aria-label={entry.title}
+                  >
+                    Seu navegador não suporta reprodução de vídeo.
+                  </video>
+                ) : entry.mediaType === "audio" ? (
+                  <div className={styles.audioWrapper}>
+                    <audio
+                      className={styles.audio}
+                      src={entry.image}
+                      controls
+                      preload="metadata"
+                    >
+                      Seu navegador não suporta reprodução de áudio.
+                    </audio>
+                  </div>
+                ) : (
+                  <img
+                    className={styles.media}
+                    src={entry.image}
+                    alt={entry.note || entry.title}
+                    loading="lazy"
+                  />
+                )}
               </div>
 
               <div className={styles.meta}>

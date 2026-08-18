@@ -137,6 +137,7 @@ export type GalleryEntry = {
   title: string;
   note: string;
   image: string;
+  mediaType: "image" | "video" | "audio";
   date: string;
   source: "muac" | "nicoly";
   tags: string[];
@@ -1051,6 +1052,22 @@ async function resolveProfileReferences(
 /* =========================================================================
    Archive → Notion mapping
    ========================================================================= */
+
+function detectMediaType(
+  url: string
+): "image" | "video" | "audio" {
+  const cleanUrl = url.split("?")[0].toLowerCase();
+
+  if (/\.(mp4|webm|mov|m4v)$/i.test(cleanUrl)) {
+    return "video";
+  }
+
+  if (/\.(mp3|wav|ogg|m4a|aac|flac)$/i.test(cleanUrl)) {
+    return "audio";
+  }
+
+  return "image";
+}
 
 async function mapPageToEntry(
   page: PageObjectResponse,
@@ -1997,17 +2014,18 @@ async function mapPageToGalleryEntry(
   // Featured
   const featured = readCheckbox(props, entity, "featured", ["Featured", "Destaque", "Destacar"]) ?? false;
 
-  return {
-    id: page.id,
-    slug,
-    title,
-    note,
-    image,
-    date,
-    source,
-    tags,
-    featured,
-  };
+return {
+  id: page.id,
+  slug,
+  title,
+  note,
+  image,
+  mediaType: detectMediaType(image),
+  date,
+  source,
+  tags,
+  featured,
+};
 }
 
 async function queryPublishedGallery(): Promise<PageObjectResponse[]> {
