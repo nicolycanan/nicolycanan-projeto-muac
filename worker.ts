@@ -193,28 +193,27 @@ export default {
               if (constantTimeCompare(expectedSig, sig)) {
                 // Authenticated — delegate to OpenNext handler
                 try {
-                  // Use OpenNext's request context wrapper to initialize runtime values (mirrors generated worker)
-                  const initPath = './.open-next/cloudflare/init.js';
-                                    const mwPath = './.open-next/middleware/handler.mjs';
-                                    const serverPath = './.open-next/server-functions/default/handler.mjs';
-                                    const initMod = await import(initPath);
-                                    if (initMod && typeof initMod.runWithCloudflareRequestContext === 'function') {
-                                      return await initMod.runWithCloudflareRequestContext(request, env, ctx, async () => {
-                                        const mw = await import(mwPath);
-                                        const reqOrResp = await mw.handler(request, env, ctx);
-                                        if (reqOrResp instanceof Response)
-                                          return reqOrResp;
-                                        const server = await import(serverPath);
-                                        return await server.handler(reqOrResp, env, ctx, request.signal);
-                                      });
-                                    }
-                                    // Fallback: call handlers directly
-                                    const mw = await import(mwPath);
-                                    const reqOrResp = await mw.handler(request, env, ctx);
-                                    if (reqOrResp instanceof Response) return reqOrResp;
-                                    const server = await import(serverPath);
-                                    return await server.handler(reqOrResp, env, ctx, request.signal);
+                  // Delegar exclusivamente ao worker gerado pelo OpenNext
+                  // @ts-expect-error: Will be resolved by opennextjs-cloudflare build
+                  const openNextMod = await import("./.open-next/worker.js");
+                  const openNextAny = openNextMod as any;
+                  if (openNextAny && openNextAny.default && typeof openNextAny.default.fetch === 'function') {
+                    return await openNextAny.default.fetch(request, env, ctx);
+                  }
+                  if (openNextAny && typeof openNextAny.fetch === 'function') {
+                    return await openNextAny.fetch(request, env, ctx);
+                  }
+                  // Caso o worker gerado não exponha fetch, gerar erro para ser tratado pelo catch externo
+                  throw new Error('OpenNext generated worker missing fetch');
                 } catch (e) {
+                  // Em produção, log seguro para wrangler tail sem expor segredos
+                  try {
+                    if (!(env && env.NEXTJS_ENV === 'development')) {
+                      console.error('OpenNext delegation error:', (e && (e as any).message) ? (e as any).message : String(e));
+                    }
+                  } catch (logErr) {
+                    // ignore logging errors
+                  }
                   if (env && env.NEXTJS_ENV === 'development') {
                     const msg = (e && (e as any).stack) ? (e as any).stack : String(e);
                     return new Response('Internal Server Error\n' + msg, { status: 500, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
