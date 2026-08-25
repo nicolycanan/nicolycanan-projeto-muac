@@ -1,0 +1,43 @@
+ .env.local.example                    |   11 [32m+[m
+ .gitignore                            |   39 [32m+[m
+ README.md                             |   21 [32m+[m
+ app/about/about.module.css            |   71 [32m+[m
+ app/about/page.tsx                    |   69 [32m+[m
+ app/archive/[slug]/article.module.css |  190 [32m+[m
+ app/archive/[slug]/page.tsx           |  370 [32m++[m
+ app/archive/archive.module.css        |  124 [32m+[m
+ app/archive/page.tsx                  |  141 [32m+[m
+ app/globals.css                       |  214 [32m++[m
+ app/layout.tsx                        |   73 [32m+[m
+ app/not-found.tsx                     |   26 [32m+[m
+ app/page.module.css                   |  322 [32m++[m
+ app/page.tsx                          |   73 [32m+[m
+ app/radio/page.tsx                    |  111 [32m+[m
+ app/radio/radio.module.css            |  143 [32m+[m
+ app/robots.ts                         |   13 [32m+[m
+ app/sitemap.ts                        |   32 [32m+[m
+ app/video/page.tsx                    |   43 [32m+[m
+ app/video/video.module.css            |  100 [32m+[m
+ components/Carousel.module.css        |  145 [32m+[m
+ components/Carousel.tsx               |  209 [32m++[m
+ components/Footer.module.css          |   45 [32m+[m
+ components/Footer.tsx                 |   23 [32m+[m
+ components/Header.module.css          |  192 [32m+[m
+ components/Header.tsx                 |  113 [32m+[m
+ components/HomeFeaturedClient.tsx     |   75 [32m+[m
+ components/RevealGroup.tsx            |    8 [32m+[m
+ components/ThemeProvider.tsx          |   33 [32m+[m
+ eslint.config.mjs                     |   18 [32m+[m
+ hooks/useReveal.ts                    |   42 [32m+[m
+ lib/content.ts                        | 1588 [32m++++++++[m
+ next-env.d.ts                         |    7 [32m+[m
+ next.config.ts                        |    7 [32m+[m
+ package-lock.json                     | 6387 [32m+++++++++++++++++++++++++++++++++[m
+ package.json                          |   29 [32m+[m
+ public/favicon.svg                    |    5 [32m+[m
+ public/images/carpa-dark.png          |  Bin [31m0[m -> [32m1651873[m bytes
+ public/images/carpa-light.png         |  Bin [31m0[m -> [32m214810[m bytes
+ public/images/carpa.png               |  Bin [31m0[m -> [32m911112[m bytes
+ tsconfig.json                         |   34 [32m+[m
+ tsconfig.tsbuildinfo                  |    1 [32m+[m
+ 42 files changed, 11147 insertions(+)

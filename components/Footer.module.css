@@ -1,0 +1,45 @@
+.footer {
+  border-top: 1px solid var(--line);
+  padding: var(--space-4) var(--edge) var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.mark {
+  font-family: var(--font-hand);
+  font-size: 35px;
+  color: var(--ink);
+}
+
+.links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4em;
+  font-family: var(--font-ui);
+  font-size: var(--fs-small);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-dim);
+}
+
+.links a:hover {
+  color: var(--ink);
+}
+
+.bottom {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-1);
+  margin-top: var(--space-3);
+  font-family: var(--font-ui);
+  font-size: var(--fs-small);
+  color: var(--ink-faint);
+}
