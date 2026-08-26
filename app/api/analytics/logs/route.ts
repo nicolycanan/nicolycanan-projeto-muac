@@ -14,6 +14,7 @@ type AnalyticsLog = {
   archive_slug: string | null;
   country: string | null;
   device: string | null;
+  ip_address: string | null;
   created_at: string;
 };
 
@@ -24,9 +25,15 @@ export async function GET(request: Request) {
 
     const url = new URL(request.url);
 
-    const requestedLimit = Number(url.searchParams.get("limit") ?? "100");
+    const requestedLimit = Number(
+      url.searchParams.get("limit") ?? "100",
+    );
+
     const limit = Math.min(
-      Math.max(Number.isFinite(requestedLimit) ? requestedLimit : 100, 1),
+      Math.max(
+        Number.isFinite(requestedLimit) ? requestedLimit : 100,
+        1,
+      ),
       500,
     );
 
@@ -45,6 +52,7 @@ export async function GET(request: Request) {
           archive_slug,
           country,
           device,
+          ip_address,
           created_at
         FROM analytics_events
         ORDER BY id DESC

@@ -27,6 +27,7 @@ type RecentEventRow = {
   path: string;
   archive_slug: string | null;
   device: string | null;
+  ip_address: string | null;
   utm_source: string | null;
   created_at: string;
 };
@@ -45,13 +46,16 @@ export async function GET() {
       )
       .first<{ total: number }>();
 
+    /*
+     * Visitantes únicos identificados pelo IP.
+     */
     const uniqueVisitorsResult = await db
       .prepare(
-        `SELECT COUNT(DISTINCT visitor_hash) AS total
+        `SELECT COUNT(DISTINCT ip_address) AS total
          FROM analytics_events
          WHERE event = 'pageview'
-           AND visitor_hash IS NOT NULL
-           AND visitor_hash != ''`,
+           AND ip_address IS NOT NULL
+           AND ip_address != ''`,
       )
       .first<{ total: number }>();
 
@@ -118,6 +122,7 @@ export async function GET() {
            path,
            archive_slug,
            device,
+           ip_address,
            utm_source,
            created_at
          FROM analytics_events
@@ -129,10 +134,7 @@ export async function GET() {
     return NextResponse.json(
       {
         totalPageviews: totalResult?.total ?? 0,
-
-        // Visitantes únicos identificados pelo hash anônimo do IP.
         uniqueVisitors: uniqueVisitorsResult?.total ?? 0,
-
         topPages: topPagesResult.results ?? [],
         topArchives: topArchivesResult.results ?? [],
         devices: devicesResult.results ?? [],

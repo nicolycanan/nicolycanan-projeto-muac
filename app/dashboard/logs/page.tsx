@@ -16,6 +16,7 @@ type AnalyticsLog = {
   archive_slug: string | null;
   country: string | null;
   device: string | null;
+  ip_address: string | null;
   created_at: string;
 };
 
@@ -42,6 +43,7 @@ export default function LogsPage() {
       }
 
       const data = (await response.json()) as LogsResponse;
+
       setLogs(data.logs ?? []);
     } catch {
       setError("Não foi possível carregar os logs.");
@@ -59,7 +61,9 @@ export default function LogsPage() {
       <header className={styles.header}>
         <div>
           <div className={styles.eyebrow}>Admin / Logs</div>
+
           <h1 className="hand">Logs</h1>
+
           <p className={styles.sub}>
             Eventos registrados pelo sistema de analytics do MUAC.
           </p>
@@ -99,6 +103,7 @@ export default function LogsPage() {
                   <th>Path</th>
                   <th>Arquivo</th>
                   <th>Dispositivo</th>
+                  <th>IP</th>
                   <th>Origem</th>
                 </tr>
               </thead>
@@ -116,17 +121,15 @@ export default function LogsPage() {
 
                     <td className={styles.mono}>{log.path}</td>
 
-                    <td>
-                      {log.archive_slug ?? "—"}
+                    <td>{log.archive_slug ?? "—"}</td>
+
+                    <td>{log.device ?? "—"}</td>
+
+                    <td className={styles.mono}>
+                      {log.ip_address ?? "—"}
                     </td>
 
-                    <td>
-                      {log.device ?? "—"}
-                    </td>
-
-                    <td>
-                      {log.utm_source ?? "Direto"}
-                    </td>
+                    <td>{log.utm_source ?? "Direto"}</td>
                   </tr>
                 ))}
               </tbody>

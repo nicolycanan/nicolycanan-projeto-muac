@@ -39,35 +39,6 @@ function getString(
   return trimmed.slice(0, maxLength);
 }
 
-/**
- * Gera um identificador anônimo baseado no IP.
- *
- * O IP real nunca é armazenado no banco.
- * O salt fica protegido como secret no Cloudflare.
- */
-async function createVisitorHash(
-  ip: string | null,
-  salt: string | undefined,
-): Promise<string | null> {
-  if (!ip || !salt) {
-    return null;
-  }
-
-  const encoder = new TextEncoder();
-  const data = encoder.encode(`${salt}:${ip}`);
-
-  const hashBuffer = await crypto.subtle.digest(
-    "SHA-256",
-    data,
-  );
-
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-
-  return hashArray
-    .map((byte) => byte.toString(16).padStart(2, "0"))
-    .join("");
-}
-
 export async function POST(request: NextRequest) {
   try {
     const body: unknown = await request.json();
@@ -100,12 +71,6 @@ export async function POST(request: NextRequest) {
 
     /*
      * O Dashboard nunca deve entrar no Analytics.
-     *
-     * Isso bloqueia:
-     * /dashboard
-     * /dashboard/analytics
-     * /dashboard/logs
-     * /dashboard/*
      */
     if (
       path === "/dashboard" ||
@@ -118,17 +83,14 @@ export async function POST(request: NextRequest) {
     }
 
     /*
-     * Captura o IP fornecido pelo Cloudflare.
+     * Captura o IP fornecido pela Cloudflare.
      *
-     * O IP é utilizado somente para gerar o hash.
-     * O IP real não é enviado para o banco.
+     * CF-Connecting-IP representa o IP do visitante
+     * quando a requisição passa pelo proxy da Cloudflare.
      */
-    const clientIp = request.headers.get("CF-Connecting-IP");
-
-    const visitorHash = await createVisitorHash(
-      clientIp,
-      process.env.ANALYTICS_IP_SALT,
-    );
+    const clientIp =
+      request.headers.get("CF-Connecting-IP") ??
+      null;
 
     await recordAnalyticsEvent({
       event,
@@ -145,7 +107,7 @@ export async function POST(request: NextRequest) {
       country: getString(data.country, 100),
       device: getString(data.device, 50),
 
-      visitor_hash: visitorHash,
+      ip_address: clientIp,
     });
 
     return NextResponse.json({

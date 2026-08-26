@@ -12,7 +12,7 @@ export type AnalyticsEvent = {
   archive_slug?: string | null;
   country?: string | null;
   device?: string | null;
-  visitor_hash?: string | null;
+  ip_address?: string | null;
 };
 
 export async function recordAnalyticsEvent(
@@ -35,7 +35,7 @@ export async function recordAnalyticsEvent(
           archive_slug,
           country,
           device,
-          visitor_hash
+          ip_address
         )
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
@@ -52,7 +52,7 @@ export async function recordAnalyticsEvent(
       data.archive_slug ?? null,
       data.country ?? null,
       data.device ?? null,
-      data.visitor_hash ?? null,
+      data.ip_address ?? null,
     )
     .run();
 }
