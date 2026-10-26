@@ -1,12 +1,11 @@
-import Image from "next/image";
+import Image from "@/components/ResilientImage";
 import styles from "./page.module.css";
 import { RevealGroup } from "@/components/RevealGroup";
 import { getArchive, ArchiveEntry } from "@/lib/content";
 import HomeFeaturedClient from "@/components/HomeFeaturedClient";
 
-// Mantém a Home sincronizada com o conteúdo publicado do Archive.
-// Atualiza o cache a cada 5 minutos.
-export const revalidate = 300;
+// Publicação e retirada de artigos devem aparecer imediatamente.
+export const dynamic = "force-dynamic";
 
 export default async function Home() {
   // Fonte única dos artigos da Home.

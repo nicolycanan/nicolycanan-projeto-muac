@@ -1,0 +1,83 @@
+{
+  "type": "doc",
+  "content": [
+    {
+      "type": "heading",
+      "attrs": { "level": 2 },
+      "content": [{ "type": "text", "text": "Uma descoberta para guardar" }]
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Memória, música e histórias. ",
+          "marks": [{ "type": "bold" }, { "type": "italic" }]
+        },
+        {
+          "type": "text",
+          "text": "Um link de referência",
+          "marks": [
+            { "type": "link", "attrs": { "href": "https://example.com" } }
+          ]
+        },
+        { "type": "hardBreak" },
+        {
+          "type": "text",
+          "text": "Anotações de um acervo fictício.",
+          "marks": [{ "type": "notionColor", "attrs": { "value": "red" } }]
+        }
+      ]
+    },
+    {
+      "type": "blockquote",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            { "type": "text", "text": "Coisas que eu quero lembrar." }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "image",
+      "attrs": {
+        "src": "/media/00000000-0000-0000-0000-000000000001",
+        "alt": "Imagem fictícia para teste",
+        "caption": "Uma legenda de exemplo"
+      }
+    },
+    {
+      "type": "bulletList",
+      "content": [
+        {
+          "type": "listItem",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [{ "type": "text", "text": "Guardar uma referência" }]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "orderedList",
+      "content": [
+        {
+          "type": "listItem",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                { "type": "text", "text": "Revisar antes de publicar" }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    { "type": "horizontalRule" }
+  ]
+}

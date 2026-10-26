@@ -1,0 +1,49 @@
+// Local configuration for a fresh clone. These are placeholder identifiers.
+// Copy to wrangler.jsonc in your own clone before starting local development.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "muac-local",
+  "main": "worker.ts",
+  "compatibility_date": "2026-08-17",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "preview_urls": false,
+  "d1_databases": [
+    {
+      "binding": "muac_analytics",
+      "database_name": "muac-analytics",
+      "database_id": "00000000-0000-0000-0000-000000000001",
+      "remote": false,
+    },
+    {
+      "binding": "muac_content",
+      "database_name": "muac-content",
+      "database_id": "00000000-0000-0000-0000-000000000002",
+      "migrations_dir": "migrations-content",
+      "remote": false,
+    },
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "muac_media",
+      "id": "00000000000000000000000000000001",
+      "remote": false,
+    },
+  ],
+  "vars": {
+    "CONTENT_BACKEND": "d1",
+    "MAINTENANCE_MODE": "0",
+    "ACCESS_TEAM_DOMAIN": "https://your-team.cloudflareaccess.com",
+    "ACCESS_AUD": "YOUR_ACCESS_APPLICATION_AUDIENCE",
+  },
+  "ratelimits": [
+    {
+      "name": "ANALYTICS_RATE_LIMITER",
+      "namespace_id": "1001",
+      "simple": { "limit": 10, "period": 60 },
+    },
+  ],
+  "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
+  "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "muac-local" }],
+  "images": { "binding": "IMAGES" },
+  "observability": { "enabled": true },
+}

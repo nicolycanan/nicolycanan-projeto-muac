@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "test:editor": "node scripts/test-editor-local.mjs",
     "build": "next build",
     "dev": "next dev",
     "start": "next start",
@@ -18,9 +20,15 @@
     "@fontsource/space-grotesk": "^5.3.0",
     "@fontsource/work-sans": "^5.3.0",
     "@notionhq/client": "^5.25.2",
-    "@opennextjs/cloudflare": "^1.20.2",
-    "image-size": "^2.0.2",
-    "next": "16.3.1",
+    "@opennextjs/cloudflare": "^1.20.13",
+    "@tiptap/extension-image": "^3.32.0",
+    "@tiptap/extension-placeholder": "^3.32.0",
+    "@tiptap/pm": "^3.32.0",
+    "@tiptap/react": "^3.32.0",
+    "@tiptap/starter-kit": "^3.32.0",
+    "image-size": "^2.0.4",
+    "jose": "^6.2.13",
+    "next": "^16.4.3",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },
@@ -29,7 +37,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.3.1",
+    "eslint-config-next": "^16.4.3",
     "typescript": "^5",
     "wrangler": "^4.123.0"
   }

@@ -1,10 +1,10 @@
 ﻿import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
+import Image from "@/components/ResilientImage";
 import styles from "./archive.module.css";
 import { getArchive, ArchiveEntry } from "@/lib/content";
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Archive",
@@ -40,16 +40,11 @@ export default async function ArchivePage() {
       {error ? (
         <div className={styles.emptyState}>
           <p>
-            Problema na configuração do
-            Notion CMS:{" "}
-            <strong>{error}</strong>
+            Não foi possível carregar os artigos agora.
           </p>
 
           <p>
-            Verifique as variáveis de ambiente
-            do servidor (NOTION_TOKEN e
-            NOTION_DATABASE_ID). O token deve
-            permanecer apenas no servidor.
+            Tente novamente em alguns instantes.
           </p>
         </div>
       ) : entries.length === 0 ? (
@@ -59,8 +54,7 @@ export default async function ArchivePage() {
           </p>
 
           <p>
-            Confirme se a página do Notion
-            possui itens com Published marcado.
+            Novos textos aparecem por aqui em breve.
           </p>
         </div>
       ) : (

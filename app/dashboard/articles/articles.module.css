@@ -1,0 +1,338 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.header h1 {
+  font-size: clamp(2.8rem, 6vw, 4.5rem);
+  line-height: 1.15;
+}
+.header p:last-child {
+  color: var(--ink-dim);
+}
+.workspace {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+.articleList {
+  display: grid;
+  gap: 0.5rem;
+}
+.articleList > button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6rem;
+  text-align: left;
+  padding: 1rem;
+  background: var(--bg-raised);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.articleList strong {
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+.articleList > button:hover,
+.articleList .selected {
+  border-color: var(--stamp);
+}
+.badge {
+  font-family: var(--font-ui);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-faint);
+}
+.form {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.3rem;
+}
+.form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+  color: var(--ink-dim);
+  font-family: var(--font-ui);
+}
+.form input:not([type="checkbox"]):not([type="file"]),
+.form textarea {
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--bg-raised);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  color: var(--ink);
+  font: inherit;
+}
+.form input:focus,
+.form textarea:focus {
+  outline: 1px solid var(--stamp);
+}
+.form input[readonly] {
+  opacity: 0.65;
+}
+.form small {
+  font-size: 0.7rem;
+  color: var(--ink-faint);
+}
+.form .titleInput {
+  font-size: 1.7rem !important;
+  font-weight: 500;
+  line-height: 1.4;
+}
+.fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+.actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.7rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.actions > div {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.actions button,
+.primary,
+.fileButton,
+.toolbar button {
+  border: 1px solid var(--line);
+  background: var(--bg-raised);
+  color: var(--ink);
+  padding: 0.65rem 0.9rem;
+  border-radius: 6px;
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+.primary,
+.actions .primary {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
+}
+.actions a {
+  font-size: 0.8rem;
+  text-decoration: underline;
+}
+.actions button:disabled,
+.primary:disabled,
+.toolbar button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+.hint {
+  font-size: 0.75rem;
+  color: var(--ink-faint);
+  line-height: 1.5;
+}
+.notice,
+.success,
+.error {
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.error {
+  border-color: #c55;
+  color: #e66;
+}
+.success {
+  border-color: #5a8;
+  color: var(--ink);
+}
+.cover {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.cover img {
+  width: 120px;
+  height: 90px;
+  object-fit: cover;
+}
+.cover .fileButton {
+  display: inline-flex;
+  margin-top: 0.7rem;
+  color: var(--ink);
+}
+.fileButton input {
+  max-width: 190px;
+  font-size: 0.7rem;
+  margin-top: 0.5rem;
+}
+.checks {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.checks label {
+  flex-direction: row;
+  align-items: center;
+}
+.editorSurface {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg-raised);
+  overflow: hidden;
+}
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  padding: 0.65rem;
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  background: var(--bg-raised);
+  z-index: 1;
+}
+.toolbar button {
+  padding: 0.45rem 0.6rem;
+  border-color: transparent;
+}
+.toolbar button:hover {
+  border-color: var(--line);
+}
+.prose {
+  padding: 1.4rem;
+  min-height: 450px;
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: var(--ink);
+  outline: none;
+  overflow-wrap: anywhere;
+}
+.prose p {
+  margin: 0 0 1rem;
+  white-space: pre-wrap;
+}
+.prose h1,
+.prose h2,
+.prose h3 {
+  font-size: 1.6rem;
+  line-height: 1.4;
+  margin: 1.5rem 0 0.8rem;
+}
+.prose blockquote {
+  border-left: 3px solid var(--stamp);
+  padding-left: 1.2rem;
+  font-style: italic;
+  margin: 1.4rem 0;
+}
+.prose ul,
+.prose ol {
+  padding-left: 1.8rem;
+  margin: 1rem 0;
+}
+.prose ul {
+  list-style: disc;
+}
+.prose ol {
+  list-style: decimal;
+}
+.prose img {
+  max-width: 100%;
+  height: auto;
+  max-height: 700px;
+  object-fit: contain;
+}
+.prose figure {
+  margin: 1.5rem 0;
+}
+.prose figcaption {
+  font-size: 0.8rem;
+  color: var(--ink-faint);
+  text-align: center;
+}
+.prose a {
+  color: var(--stamp);
+  text-decoration: underline;
+}
+.prose :global(.ProseMirror-selectednode) {
+  outline: 2px solid var(--stamp);
+}
+.prose :global(p.is-editor-empty:first-child::before) {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  color: var(--ink-faint);
+}
+.editorSurface > .hint {
+  padding: 0 1.4rem 1rem;
+}
+.empty {
+  padding: 3rem 1.5rem;
+  border: 1px dashed var(--line);
+  text-align: center;
+}
+.empty h2 {
+  font-size: 2.6rem;
+}
+.empty p {
+  color: var(--ink-dim);
+  margin-top: 1rem;
+}
+.publicLink {
+  font-size: 0.85rem;
+  text-decoration: underline;
+}
+@media (max-width: 1200px) {
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+  .articleList {
+    display: flex;
+    overflow: auto;
+    padding-bottom: 0.5rem;
+  }
+  .articleList > button {
+    flex: 0 0 200px;
+  }
+}
+@media (max-width: 600px) {
+  .header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .fields {
+    grid-template-columns: 1fr;
+  }
+  .prose {
+    padding: 1rem;
+  }
+  .cover {
+    align-items: flex-start;
+  }
+  .actions > div {
+    gap: 0.35rem;
+  }
+  .actions button {
+    padding: 0.6rem;
+  }
+  .toolbar button {
+    min-height: 36px;
+  }
+}

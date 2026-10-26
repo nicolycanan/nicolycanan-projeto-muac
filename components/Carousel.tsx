@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
+import Image from "./ResilientImage";
 import Link from "next/link";
 import styles from "./Carousel.module.css";
 import type { ArchiveEntry } from "@/lib/content";

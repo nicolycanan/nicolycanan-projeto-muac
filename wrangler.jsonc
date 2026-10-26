@@ -4,41 +4,59 @@
       "binding": "muac_analytics",
       "database_name": "muac-analytics",
       "database_id": "f04a59c4-be0b-4c60-8a08-dde7bf188e79",
-      "remote": true
-    }
+      "remote": true,
+    },
+    {
+      "binding": "muac_content",
+      "database_name": "muac-content",
+      "database_id": "09198f10-291f-41df-99b7-2472580f0d88",
+      "migrations_dir": "migrations-content",
+      "remote": true,
+    },
   ],
+  "kv_namespaces": [
+    {
+      "binding": "muac_media",
+      "id": "7c172dc04feb4fba99ad0fcfd24151f9",
+      "remote": true,
+    },
+  ],
+  "vars": {
+    "MAINTENANCE_MODE": "0",
+    "CONTENT_BACKEND": "d1",
+    "ACCESS_TEAM_DOMAIN": "https://tight-pine-580e.cloudflareaccess.com",
+    "ACCESS_AUD": "09c9bc6f234a3cd2d36665a412e46e6f22047220bdc7f8b034a648d5cbf36bfe",
+  },
   "$schema": "node_modules/wrangler/config-schema.json",
   "main": "worker.ts",
   "name": "muac",
+  "preview_urls": false,
   "compatibility_date": "2026-08-17",
-  "compatibility_flags": [
-    "nodejs_compat",
-    "global_fetch_strictly_public"
-  ],
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "ratelimits": [
     {
       "name": "ANALYTICS_RATE_LIMITER",
       "namespace_id": "1001",
       "simple": {
         "limit": 10,
-        "period": 60
-      }
-    }
+        "period": 60,
+      },
+    },
   ],
   "assets": {
     "directory": ".open-next/assets",
-    "binding": "ASSETS"
+    "binding": "ASSETS",
   },
   "services": [
     {
       "binding": "WORKER_SELF_REFERENCE",
-      "service": "muac"
-    }
+      "service": "muac",
+    },
   ],
   "images": {
-    "binding": "IMAGES"
+    "binding": "IMAGES",
   },
   "observability": {
-    "enabled": true
-  }
+    "enabled": true,
+  },
 }

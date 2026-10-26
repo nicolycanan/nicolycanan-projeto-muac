@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { requireAdmin, AdminError, adminFailure } from "@/lib/admin-auth";
 
 type AnalyticsLog = {
   id: number;
@@ -20,6 +21,7 @@ type AnalyticsLog = {
 
 export async function GET(request: Request) {
   try {
+    await requireAdmin(request);
     const { env } = getCloudflareContext();
     const db = env.muac_analytics;
 
@@ -73,6 +75,7 @@ export async function GET(request: Request) {
       },
     );
   } catch (error) {
+    if (error instanceof AdminError) return adminFailure(error);
     console.error("Analytics logs error:", error);
 
     return NextResponse.json(

@@ -6,18 +6,22 @@ import styles from "./dashboard.module.css";
 
 const navItems = [
   { href: "/dashboard", label: "Overview" },
+  { href: "/dashboard/articles", label: "Artigos" },
   { href: "/dashboard/analytics", label: "Analytics" },
   { href: "/dashboard/logs", label: "Logs" },
 ];
 
 const quickLinks = [
   { href: "/archive", label: "Archive" },
-  { href: "/gallery", label: "Gallery" },
   { href: "/radio", label: "Radio" },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+
+  if (/^\/dashboard\/articles\/[^/]+\/preview$/.test(pathname)) {
+    return <>{children}</>;
+  }
 
   return (
     <div className={`container ${styles.shell}`}>
